@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { TASK_CATEGORIES, TASK_LABELS, type TaskFilter } from '../types/task';
 
 const props = defineProps<{
@@ -48,7 +47,7 @@ const toggleLabel = (label: string) => {
           <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
           <select
             v-model="modelValue.selectedCategory"
-            @change="updateFilter({ selectedCategory: $event.target.value })"
+            @change="updateFilter({ selectedCategory: ($event.target as HTMLSelectElement).value })"Q
             class="input-primary w-full"
           >
             <option value="">All Categories</option>
