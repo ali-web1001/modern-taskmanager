@@ -30,7 +30,7 @@ const filteredTasks = computed(() => {
     if (!filters.value.showDeleted && task.deletedAt) return false;
     if (filters.value.selectedCategory && task.category !== filters.value.selectedCategory) return false;
     if (filters.value.selectedLabels.length > 0) {
-      const hasSelectedLabel = task.labels.some(label => 
+      const hasSelectedLabel = task.labels.some(label =>
         filters.value.selectedLabels.includes(label)
       );
       if (!hasSelectedLabel) return false;
@@ -56,6 +56,16 @@ const deleteTask = async (id: string) => {
   await taskStore.deleteTask(id);
 };
 
+// Add a new method to handle permanent deletion
+const permanentlyDeleteTask = async (id: string) => {
+  await taskStore.permanentlyDeleteTask(id);
+};
+
+// Add restore task method
+const restoreTask = async (id: string) => {
+  await taskStore.restoreTask(id);
+};
+
 const handleLogout = async () => {
   await authStore.logout();
   router.push('/login');
@@ -71,6 +81,7 @@ const navigateToRegister = () => {
 </script>
 
 <template>
+
   <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6">
     <div class="max-w-6xl mx-auto">
       <div class="mb-10 flex justify-between items-center">
@@ -78,28 +89,19 @@ const navigateToRegister = () => {
           <h1 class="text-4xl font-bold text-gray-900 mb-3">Task Manager</h1>
           <p class="text-gray-600 text-lg">Stay organized and productive</p>
         </div>
-        
+
         <div class="flex items-center gap-4">
           <template v-if="authStore.isAuthenticated">
             <span class="text-gray-600">{{ authStore.user?.user_metadata?.name || authStore.user?.email }}</span>
-            <button
-              @click="handleLogout"
-              class="btn-secondary"
-            >
+            <button @click="handleLogout" class="btn-secondary">
               Logout
             </button>
           </template>
           <template v-else>
-            <button
-              @click="navigateToLogin"
-              class="btn-primary"
-            >
+            <button @click="navigateToLogin" class="btn-primary">
               Sign In
             </button>
-            <button
-              @click="navigateToRegister"
-              class="btn-secondary"
-            >
+            <button @click="navigateToRegister" class="btn-secondary">
               Sign Up
             </button>
           </template>
@@ -109,9 +111,7 @@ const navigateToRegister = () => {
       <template v-if="authStore.isAuthenticated">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div class="lg:col-span-1">
-            <TaskFilters
-              v-model="filters"
-            />
+            <TaskFilters v-model="filters" />
           </div>
 
           <div class="lg:col-span-3 space-y-6">
@@ -125,19 +125,9 @@ const navigateToRegister = () => {
               <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
             </div>
 
-            <TransitionGroup
-              v-else
-              name="slide-fade"
-              tag="div"
-              class="space-y-4"
-            >
-              <TaskItem
-                v-for="task in filteredTasks"
-                :key="task.id"
-                :task="task"
-                @update:task="updateTask"
-                @delete:task="deleteTask"
-              />
+            <TransitionGroup v-else name="slide-fade" tag="div" class="space-y-4">
+              <TaskItem v-for="task in filteredTasks" :key="task.id" :task="task" @update:task="updateTask"
+                @delete:task="deleteTask" @restore:task="restoreTask" @permanent:delete="permanentlyDeleteTask" />
             </TransitionGroup>
 
             <p v-if="filteredTasks.length === 0 && !taskStore.loading" class="text-center text-gray-500 mt-8">
@@ -146,21 +136,16 @@ const navigateToRegister = () => {
           </div>
         </div>
       </template>
+
       <template v-else>
         <div class="text-center py-12">
           <h2 class="text-2xl font-semibold text-gray-900 mb-4">Welcome to Task Manager</h2>
           <p class="text-gray-600 mb-8">Please sign in or create an account to manage your tasks.</p>
           <div class="flex justify-center gap-4">
-            <button
-              @click="navigateToLogin"
-              class="btn-primary px-8"
-            >
+            <button @click="navigateToLogin" class="btn-primary px-8">
               Sign In
             </button>
-            <button
-              @click="navigateToRegister"
-              class="btn-secondary px-8"
-            >
+            <button @click="navigateToRegister" class="btn-secondary px-8">
               Sign Up
             </button>
           </div>

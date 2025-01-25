@@ -21,6 +21,25 @@ const tasksForDate = (date: Date) => {
   );
 };
 
+// const tasksForDate = (date: Date) => {
+//   return props.tasks.filter(task => {
+//     // Add defensive checks for task and dueDate
+//     if (!task || !task.dueDate) return false;
+    
+//     try {
+//       // Ensure we're comparing Date objects
+//       const taskDate = task.dueDate instanceof Date 
+//         ? task.dueDate 
+//         : new Date(task.dueDate);
+      
+//       return isSameDay(taskDate, date);
+//     } catch (error) {
+//       // Log any problematic tasks for debugging
+//       console.warn('Invalid date for task:', task, error);
+//       return false;
+//     }
+//   });
+// };
 const previousMonth = () => {
   currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() - 1);
 };

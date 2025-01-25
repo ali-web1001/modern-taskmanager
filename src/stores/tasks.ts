@@ -64,7 +64,11 @@ export const useTaskStore = defineStore('tasks', {
           (payload) => {
             if (payload.eventType === 'INSERT') {
               const newTask = mapDbTaskToTask(payload.new as DbTask);
-              this.tasks.unshift(newTask);
+              // Check if task already exists to prevent duplicates
+              const existingTaskIndex = this.tasks.findIndex(t => t.id === newTask.id);
+              if (existingTaskIndex === -1) {
+                this.tasks.unshift(newTask);
+              }
             } else if (payload.eventType === 'UPDATE') {
               const updatedTask = mapDbTaskToTask(payload.new as DbTask);
               const index = this.tasks.findIndex(
@@ -161,11 +165,63 @@ export const useTaskStore = defineStore('tasks', {
 
     async deleteTask(id: string) {
       try {
-        const { error } = await supabase.from('tasks').delete().eq('id', id);
+        // Soft delete: update the task with a deleted_at timestamp
+        const { data, error } = await supabase
+          .from('tasks')
+          .update({
+            deleted_at: new Date().toISOString()
+          })
+          .eq('id', id)
+          .select()
+          .single();
 
         if (error) throw error;
 
-        // Optimistic update
+        // Optimistic update: update the local task state
+        const updatedTask = mapDbTaskToTask(data as DbTask);
+        const index = this.tasks.findIndex((t) => t.id === id);
+        if (index !== -1) this.tasks[index] = updatedTask;
+      } catch (error: any) {
+        this.error = error.message;
+        throw error;
+      }
+    },
+
+    async restoreTask(id: string) {
+      try {
+        // Restore the task by removing the deleted_at timestamp
+        const { data, error } = await supabase
+          .from('tasks')
+          .update({
+            deleted_at: null
+          })
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Optimistic update: update the local task state
+        const updatedTask = mapDbTaskToTask(data as DbTask);
+        const index = this.tasks.findIndex((t) => t.id === id);
+        if (index !== -1) this.tasks[index] = updatedTask;
+      } catch (error: any) {
+        this.error = error.message;
+        throw error;
+      }
+    },
+
+    async permanentlyDeleteTask(id: string) {
+      try {
+        // Permanently remove the task from the database
+        const { error } = await supabase
+          .from('tasks')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+
+        // Optimistic update: remove the task from local state
         this.tasks = this.tasks.filter((t) => t.id !== id);
       } catch (error: any) {
         this.error = error.message;
