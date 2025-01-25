@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useAuthStore } from './stores/auth';
-import { useRouter } from 'vue-router';
+// import { useRouter } from 'vue-router';
 import { onMounted } from 'vue';
 
 const authStore = useAuthStore();
-const router = useRouter();
+// const _router = useRouter();
+
 
 onMounted(async () => {
   if (authStore.loading) {
