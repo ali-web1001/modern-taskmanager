@@ -47,7 +47,7 @@ const toggleLabel = (label: string) => {
           <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
           <select
             v-model="modelValue.selectedCategory"
-            @change="updateFilter({ selectedCategory: ($event.target as HTMLSelectElement).value })"Q
+            @change="updateFilter({ selectedCategory: ($event.target as HTMLSelectElement).value })"
             class="input-primary w-full"
           >
             <option value="">All Categories</option>

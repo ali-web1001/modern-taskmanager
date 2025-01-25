@@ -1,3 +1,4 @@
+// types/task.ts
 export interface Task {
   id: string;
   title: string;
@@ -30,3 +31,6 @@ export const TASK_LABELS = [
   'Blocked',
   'Low Priority',
 ] as const;
+
+export type TaskCategory = typeof TASK_CATEGORIES[number];
+export type TaskLabel = typeof TASK_LABELS[number];

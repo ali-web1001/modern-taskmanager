@@ -12,27 +12,28 @@ import {
   TagIcon,
 } from "@heroicons/vue/24/outline";
 
+// Define props with Task type
 const props = defineProps<{
   task: Task;
 }>();
 
+// Explicitly type the emits with custom event types
 const emit = defineEmits<{
-  "update:task": [task: Task];
-  "delete:task": [id: string];
-  "restore:task": [id: string];
+  (e: "update:task", task: Task): void;
+  (e: "delete:task", id: string): void;
+  (e: "restore:task", id: string): void;
 }>();
 
 const isEditing = ref(false);
 const editedTitle = ref(props.task.title);
 const editedDueDate = ref(
   props.task.dueDate
-    ? new Date(props.task.dueDate).toISOString().split("T")[0]
+    ? props.task.dueDate.toISOString().split("T")[0]
     : ""
 );
-const editedCategory = ref(props.task.category || "");
-const editedLabels = ref(props.task.labels || []);
+const editedCategory = ref<string | undefined>(props.task.category);
+const editedLabels = ref<string[]>(props.task.labels || []);
 const newLabel = ref("");
-
 
 const toggleComplete = () => {
   emit("update:task", {
@@ -45,9 +46,9 @@ const startEditing = () => {
   isEditing.value = true;
   editedTitle.value = props.task.title;
   editedDueDate.value = props.task.dueDate
-    ? new Date(props.task.dueDate).toISOString().split("T")[0]
+    ? props.task.dueDate.toISOString().split("T")[0]
     : "";
-  editedCategory.value = props.task.category || "";
+  editedCategory.value = props.task.category;
   editedLabels.value = [...(props.task.labels || [])];
 };
 
@@ -56,8 +57,8 @@ const saveEdit = () => {
     emit("update:task", {
       ...props.task,
       title: editedTitle.value.trim(),
-      dueDate: editedDueDate.value ? new Date(editedDueDate.value) : null,
-      category: editedCategory.value.trim() || null,
+      dueDate: editedDueDate.value ? new Date(editedDueDate.value) : undefined,
+      category: editedCategory.value?.trim() || undefined,
       labels: editedLabels.value.filter((label) => label.trim()),
     });
     isEditing.value = false;
@@ -68,9 +69,9 @@ const cancelEdit = () => {
   isEditing.value = false;
   editedTitle.value = props.task.title;
   editedDueDate.value = props.task.dueDate
-    ? new Date(props.task.dueDate).toISOString().split("T")[0]
+    ? props.task.dueDate.toISOString().split("T")[0]
     : "";
-  editedCategory.value = props.task.category || "";
+  editedCategory.value = props.task.category;
   editedLabels.value = [...(props.task.labels || [])];
 };
 
@@ -103,7 +104,7 @@ const formatDate = (date: Date) => {
 const getDueStatus = computed(() => {
   if (!props.task.dueDate) return null;
 
-  const date = new Date(props.task.dueDate);
+  const date = props.task.dueDate;
 
   if (props.task.completed) {
     return {
