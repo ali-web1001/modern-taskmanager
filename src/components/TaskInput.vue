@@ -20,10 +20,12 @@ const selectedCategory = ref<string>();
 const selectedLabels = ref<string[]>([]);
 const showLabels = ref(false);
 const showDatePicker = ref(false);
+const error = ref("");
 
 // Compute minimum selectable date (today)
 const minDate = computed(() => startOfToday());
 const dueDate = ref<Date>();
+
 // Close datepicker when clicking outside
 // const datePickerRef = ref(null);
 // const handleClickOutside = (event: MouseEvent) => {
@@ -41,21 +43,26 @@ const dueDate = ref<Date>();
 // }
 
 const addTask = () => {
-  if (newTask.value.trim()) {
-    emit(
-      "add:task",
-      newTask.value.trim(),
-      dueDate.value,
-      selectedCategory.value,
-      selectedLabels.value
-    );
-    // Reset form after adding task
-    newTask.value = "";
-    dueDate.value = undefined;
-    selectedCategory.value = undefined;
-    selectedLabels.value = [];
-    showDatePicker.value = false;
+  error.value = "";
+  if (!newTask.value.trim()) {
+    error.value = "Please enter a task title";
+    return;
   }
+
+  emit(
+    "add:task",
+    newTask.value.trim(),
+    dueDate.value,
+    selectedCategory.value,
+    selectedLabels.value
+  );
+
+  // Reset form after adding task
+  newTask.value = "";
+  dueDate.value = undefined;
+  selectedCategory.value = undefined;
+  selectedLabels.value = [];
+  showDatePicker.value = false;
 };
 
 const toggleLabel = (label: string) => {
@@ -133,80 +140,81 @@ const handleDateSelect = (date: Date | null) => {
 <template>
   <form @submit.prevent="addTask" class="space-y-4">
     <div class="flex flex-col sm:flex-row gap-3">
-      <input
-        v-model="newTask"
-        type="text"
-        placeholder="Add a new task..."
-        class="input-primary flex-1 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
-      />
-      <button type="submit" class="btn-primary whitespace-nowrap">
-        <PlusIcon class="w-5 h-5 mr-1.5" />
-        Add Task
-      </button>
-    </div>
-
-    <!-- Category  -->
-    <div class="flex-1 min-w-[200px]">
-      <label class="block text-sm font-medium text-gray-700 mb-1"
-        >Select Category</label
-      >
-
-      <div class="relative">
-        <select
-          v-model="selectedCategory"
-          class="input-primary w-full appearance-none focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
-        >
-          <option value="Select Category" disabled selected>
-            Select Category
-          </option>
-          <option
-            v-for="category in TASK_CATEGORIES"
-            :key="category"
-            :value="category"
-          >
-            {{ category }}
-          </option>
-        </select>
-
-        <!-- Clear Button -->
-        <button
-          v-if="selectedCategory"
-          type="button"
-          @click="selectedCategory = ''"
-          class="absolute inset-y-0 right-8 flex items-center justify-center text-gray-400 hover:text-indigo-600 transition-all duration-200 rounded-full"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </button>
-
-        <div
-          class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-        >
-          <svg
-            class="fill-current h-4 w-4"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-          >
-            <path
-              d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
-            />
-          </svg>
-        </div>
+      <div class="flex-1">
+        <input
+          v-model="newTask"
+          type="text"
+          placeholder="Add a new task..."
+          class="input-primary w-full flex-1 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
+          :class="{ 'border-red-300 focus:ring-red-200': error }"
+        />
+        <p v-if="error" class="mt-1 text-sm text-red-600">{{ error }}</p>
       </div>
     </div>
 
-    <!-- Due Date -->
-    <!-- <div class="flex-1 min-w-[200px] relative">
+    <!-- Category  -->
+    <div class="flex flex-wrap gap-4">
+      <div class="flex-1 min-w-[200px]">
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >Select Category</label
+        >
+
+        <div class="relative">
+          <select
+            v-model="selectedCategory"
+            class="input-primary w-full appearance-none focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
+          >
+            <option value="Select Category" disabled selected>
+              Select Category
+            </option>
+            <option
+              v-for="category in TASK_CATEGORIES"
+              :key="category"
+              :value="category"
+            >
+              {{ category }}
+            </option>
+          </select>
+
+          <!-- Clear Button -->
+          <button
+            v-if="selectedCategory"
+            type="button"
+            @click="selectedCategory = ''"
+            class="absolute inset-y-0 right-8 flex items-center justify-center text-gray-400 hover:text-indigo-600 transition-all duration-200 rounded-full"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+
+          <div
+            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
+          >
+            <svg
+              class="fill-current h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path
+                d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Due Date -->
+      <!-- <div class="flex-1 min-w-[200px] relative">
       <label class="block text-sm font-medium text-gray-700 mb-1"
         >Due Date</label
       >
@@ -255,7 +263,7 @@ const handleDateSelect = (date: Date | null) => {
       </div>
     </div> -->
 
-    <!-- <div class="relative">
+      <!-- <div class="relative">
       <input
         type="date"
         class="input-primary w-full focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
@@ -264,21 +272,22 @@ const handleDateSelect = (date: Date | null) => {
       />
     </div> -->
 
-    <div class="flex-1 min-w-[200px] relative">
-      <label class="block text-sm font-medium text-gray-700 mb-1"
-        >Due Date</label
-      >
-      <VueDatePicker
-        v-model="dueDate"
-        :min-date="minDate"
-        :is-required="true"
-        :action-row="{ showNow: true }"
-        now-button-label="Current"
-        arrow-navigation
-        @change="handleDateSelect"
-        format="MMM d, yyyy"
-        class="border border-gray-300 w-full rounded-md"
-      />
+      <div class="flex-1 min-w-[200px] relative">
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >Due Date</label
+        >
+        <VueDatePicker
+          v-model="dueDate"
+          :min-date="minDate"
+          :is-required="true"
+          :action-row="{ showNow: true }"
+          now-button-label="Current"
+          arrow-navigation
+          @change="handleDateSelect"
+          format="MMM d, yyyy"
+          class="border border-gray-300 w-full rounded-md"
+        />
+      </div>
     </div>
 
     <div>
@@ -308,6 +317,11 @@ const handleDateSelect = (date: Date | null) => {
         </button>
       </div>
     </div>
+
+    <button type="submit" class="btn-primary whitespace-nowrap">
+      <PlusIcon class="w-5 h-5 mr-1.5" />
+      Submit
+    </button>
   </form>
 </template>
 

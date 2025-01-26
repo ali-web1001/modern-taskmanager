@@ -27,7 +27,7 @@ body {
 }
 
 .task-card {
-  @apply bg-indigo-100  rounded-xl shadow-sm hover:shadow-md transition-all duration-200 
+  @apply bg-gray-50  rounded-xl shadow-sm hover:shadow-md transition-all duration-200 
     border border-indigo-300 p-5;
 }
 

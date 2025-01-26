@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { TASK_CATEGORIES, TASK_LABELS, type TaskFilter } from "../types/task";
+import { ref } from "vue";
+import { FunnelIcon} from "@heroicons/vue/24/outline";
+
+const showFilters = ref(false);
 
 const props = defineProps<{
   modelValue: TaskFilter;
@@ -23,32 +27,96 @@ const toggleLabel = (label: string) => {
     : [...labels, label];
   updateFilter({ selectedLabels: newLabels });
 };
+
+const resetFilters = () => {
+  updateFilter({
+    showDeleted: false,
+    selectedLabels: [],
+    selectedCategory: undefined,
+  });
+  showFilters.value = true;
+};
+
+const closeFilters = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  if (!target.closest(".filter-dropdown")) {
+    showFilters.value = false;
+  }
+};
+
+// Add click outside listener
+if (typeof window !== "undefined") {
+  window.addEventListener("click", closeFilters);
+}
 </script>
 
 <template>
-  <div
-    class="space-y-6 bg-white rounded-xl shadow-sm border border-indigo-300 p-6"
-  >
-    <div>
-      <h3 class="text-lg font-semibold text-gray-900 mb-3">Filters</h3>
+  <div class="relative inline-block text-left filter-dropdown">
+    <!-- Filter Button -->
+    <button
+      @click.stop="showFilters = !showFilters"
+      class="bg-gray-200 p-2 border border-gray-300 rounded flex items-center gap-2"
+      :class="{ 'ring-2 ring-indigo-500': showFilters }"
+    >
+      <FunnelIcon class="w-5 h-5" />
+      <span>Filters</span>
+      <!-- Active Filters Indicator -->
+      <span
+        v-if="
+          modelValue.showDeleted ||
+          modelValue.selectedCategory ||
+          modelValue.selectedLabels.length > 0
+        "
+        class="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-xs font-medium text-indigo-600"
+      >
+        {{
+          (modelValue.showDeleted ? 1 : 0) +
+          (modelValue.selectedCategory ? 1 : 0) +
+          (modelValue.selectedLabels.length > 0 ? 1 : 0)
+        }}
+      </span>
+    </button>
 
-      <div class="space-y-4">
-        <div>
-          <label class="flex items-center">
+    <!-- Dropdown Menu -->
+    <div
+      v-if="showFilters"
+      class="absolute left-0 z-10 mt-2 w-72 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+      @click.stop
+    >
+      <div class="p-4 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-medium text-gray-900">Filters</h3>
+          <button
+            @click="resetFilters"
+            class="text-gray-500 hover:text-indigo-600 transition-colors"
+            title="Reset filters"
+          >
+            <!-- <XCircleIcon class="w-5 h-5" /> -->
+            Reset All
+          </button>
+        </div>
+        <!-- Show Deleted Tasks -->
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-gray-700">Show deleted tasks</span>
+
+          <label class="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
               :checked="modelValue.showDeleted"
               @change="updateFilter({ showDeleted: !modelValue.showDeleted })"
-              class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              class="sr-only peer"
             />
-            <span class="ml-2 text-gray-700">Show deleted tasks</span>
+            <div
+              class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"
+            ></div>
           </label>
         </div>
-        <div class="flex-1 min-w-[200px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1"
-            >Select Category</label
-          >
 
+        <!-- Category Filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Category</label
+          >
           <div class="relative">
             <select
               v-model="modelValue.selectedCategory"
@@ -57,7 +125,7 @@ const toggleLabel = (label: string) => {
                   selectedCategory: ($event.target as HTMLSelectElement).value,
                 })
               "
-              class="input-primary w-full appearance-none focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
+              class="input-primary w-full text-sm appearance-none pr-8"
             >
               <option value="">All Categories</option>
               <option
@@ -68,7 +136,19 @@ const toggleLabel = (label: string) => {
                 {{ category }}
               </option>
             </select>
-
+            <div
+              class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
+            >
+              <svg
+                class="fill-current h-4 w-4"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+                />
+              </svg>
+            </div>
             <!-- Clear Button -->
             <button
               v-if="modelValue.selectedCategory"
@@ -106,11 +186,12 @@ const toggleLabel = (label: string) => {
           </div>
         </div>
 
+        <!-- Labels Filter -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2"
             >Labels</label
           >
-          <div class="flex flex-wrap gap-2">
+          <div class="flex flex-wrap gap-1.5">
             <button
               v-for="label in TASK_LABELS"
               :key="label"

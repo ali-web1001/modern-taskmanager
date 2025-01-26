@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useTaskStore } from "../stores/tasks";
 import { useAuthStore } from "../stores/auth";
@@ -8,10 +8,13 @@ import TaskItem from "../components/TaskItem.vue";
 import TaskInput from "../components/TaskInput.vue";
 import TaskFilters from "../components/TaskFilters.vue";
 import TaskCalendar from "../components/TaskCalendar.vue";
+import { CalendarIcon } from "@heroicons/vue/24/outline";
 
 const router = useRouter();
 const taskStore = useTaskStore();
 const authStore = useAuthStore();
+const showCalendar = ref(false);
+// const selectedTaskRef = ref<HTMLElement | null>(null);
 
 const filters = ref<TaskFilter>({
   showDeleted: false,
@@ -87,15 +90,36 @@ const navigateToLogin = () => {
 const navigateToRegister = () => {
   router.push("/register");
 };
+
+const toggleCalendar = () => {
+  showCalendar.value = !showCalendar.value;
+};
+
+const handleTaskSelect = (taskId: string) => {
+  // Find the task element
+  nextTick(() => {
+    const taskElement = document.getElementById(`task-${taskId}`);
+    if (taskElement) {
+      taskElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Add highlight effect
+      taskElement.classList.add("ring-2", "ring-indigo-500");
+      setTimeout(() => {
+        taskElement.classList.remove("ring-2", "ring-indigo-500");
+      }, 2000);
+    }
+  });
+};
 </script>
 
 <template>
-  <div class="min-h-screen bg-purple-50 py-12 px-4 sm:px-6">
-    <div class="max-w-6xl mx-auto">
-      <div class="mb-10 flex justify-between items-center">
-        <div>
-          <h1 class="text-4xl font-bold text-gray-900 mb-3">Task Manager</h1>
-          <p class="text-gray-600 text-lg">Stay organized and productive</p>
+  <div class="min-h-screen bg-purple-50 py-6 px-4 sm:px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-6 flex flex-wrap gap-4 items-center justify-between">
+        <div class="flex items-center gap-6">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Task Manager</h1>
+            <p class="text-gray-600 text-lg">Stay Organized and Productive</p>
+          </div>
         </div>
 
         <div class="flex items-center gap-4">
@@ -105,6 +129,7 @@ const navigateToRegister = () => {
             }}</span>
             <button @click="handleLogout" class="btn-secondary">Logout</button>
           </template>
+
           <template v-else>
             <button @click="navigateToLogin" class="btn-primary">
               Sign In
@@ -116,56 +141,78 @@ const navigateToRegister = () => {
         </div>
       </div>
 
+      <div class="mb-3">
+        <div class="flex items-center gap-2" v-if="authStore.isAuthenticated">
+          <TaskFilters v-model="filters" />
+          <button
+            @click="toggleCalendar"
+            class="btn-secondary flex items-center gap-2"
+          >
+            <CalendarIcon class="w-5 h-5" />
+            {{ showCalendar ? "Hide Calendar" : "Show Calendar" }}
+          </button>
+        </div>
+      </div>
+
       <template v-if="authStore.isAuthenticated">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div class="lg:col-span-2">
-            <TaskCalendar :tasks="filteredTasks" />
+        <!-- Calendar (Collapsible) -->
+        <Transition
+          enter-active-class="transition-all duration-300 ease-out"
+          enter-from-class="opacity-0 transform -translate-y-4"
+          enter-to-class="opacity-100 transform translate-y-0"
+          leave-active-class="transition-all duration-300 ease-in"
+          leave-from-class="opacity-100 transform translate-y-0"
+          leave-to-class="opacity-0 transform -translate-y-4"
+        >
+          <div v-if="showCalendar" class="mb-6">
+            <TaskCalendar
+              :tasks="filteredTasks"
+              @select:task="handleTaskSelect"
+            />
+          </div>
+        </Transition>
+
+        <!-- Main Content -->
+        <div class="space-y-4">
+          <!-- Add Task Form -->
+          <div
+            class="bg-white rounded-xl shadow-md border border-indigo-300 p-4"
+          >
+            <TaskInput @add:task="addTask" />
           </div>
 
-          <div class="lg:col-span-2">
-            <TaskFilters v-model="filters" />
-          </div>
-          
-          <div class="lg:col-span-4 space-y-6">
+          <!-- Task List -->
+          <div v-if="taskStore.loading" class="text-center py-8">
             <div
-              class="bg-white rounded-2xl shadow-md border border-indigo-300 p-6"
-            >
-              <TaskInput @add:task="addTask" />
-            </div>
-
-            <div v-if="taskStore.loading" class="text-center py-8">
-              <div
-                class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"
-              ></div>
-            </div>
-
-            <TransitionGroup
-              v-else
-              name="slide-fade"
-              tag="div"
-              class="space-y-4"
-            >
-              <TaskItem
-                v-for="task in filteredTasks"
-                :key="task.id"
-                :task="task"
-                @update:task="updateTask"
-                @delete:task="deleteTask"
-                @restore:task="restoreTask"
-                @permanent:delete="permanentlyDeleteTask"
-              />
-            </TransitionGroup>
-
-            <p
-              v-if="filteredTasks.length === 0 && !taskStore.loading"
-              class="text-center text-gray-100 mt-8 bg-indigo-600 p-4 rounded-lg"
-            >
-              No tasks found. Try adjusting your filters or add a new task!
-            </p>
+              class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"
+            ></div>
           </div>
+
+          <TransitionGroup v-else name="slide-fade" tag="div" class="space-y-3">
+            <TaskItem
+              v-for="task in filteredTasks"
+              :key="task.id"
+              :task="task"
+              :id="`task-${task.id}`"
+              @update:task="updateTask"
+              @delete:task="deleteTask"
+              @restore:task="restoreTask"
+              @permanent:delete="permanentlyDeleteTask"
+            />
+          </TransitionGroup>
+
+          <p
+            v-if="filteredTasks.length === 0 && !taskStore.loading"
+            class="text-center text-gray-100 mt-8 bg-indigo-600 p-4 rounded-lg"
+          >
+            No tasks found. Try adjusting your filters or add a new task!
+          </p>
+          <!-- Sidebar (Right) -->
+          <!-- <div class="space-y-4"></div> -->
         </div>
       </template>
 
+      <!-- Welcome Screen -->
       <template v-else>
         <div class="text-center py-12">
           <h2 class="text-2xl font-semibold text-gray-900 mb-4">

@@ -1,10 +1,22 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isSameMonth, isSameDay } from 'date-fns';
-import { Task } from '../types/task';
+import { ref, computed } from "vue";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isToday,
+  isSameMonth,
+  isSameDay,
+} from "date-fns";
+import { Task } from "../types/task";
 
 const props = defineProps<{
   tasks: Task[];
+}>();
+
+const emit = defineEmits<{
+  "select:task": [taskId: string];
 }>();
 
 const currentDate = ref(new Date());
@@ -16,8 +28,8 @@ const calendarDays = computed(() => {
 });
 
 const tasksForDate = (date: Date) => {
-  return props.tasks.filter(task => 
-    task.dueDate && isSameDay(new Date(task.dueDate), date)
+  return props.tasks.filter(
+    (task) => task.dueDate && isSameDay(new Date(task.dueDate), date)
   );
 };
 
@@ -25,13 +37,13 @@ const tasksForDate = (date: Date) => {
 //   return props.tasks.filter(task => {
 //     // Add defensive checks for task and dueDate
 //     if (!task || !task.dueDate) return false;
-    
+
 //     try {
 //       // Ensure we're comparing Date objects
-//       const taskDate = task.dueDate instanceof Date 
-//         ? task.dueDate 
+//       const taskDate = task.dueDate instanceof Date
+//         ? task.dueDate
 //         : new Date(task.dueDate);
-      
+
 //       return isSameDay(taskDate, date);
 //     } catch (error) {
 //       // Log any problematic tasks for debugging
@@ -41,11 +53,21 @@ const tasksForDate = (date: Date) => {
 //   });
 // };
 const previousMonth = () => {
-  currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() - 1);
+  currentDate.value = new Date(
+    currentDate.value.getFullYear(),
+    currentDate.value.getMonth() - 1
+  );
 };
 
 const nextMonth = () => {
-  currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + 1);
+  currentDate.value = new Date(
+    currentDate.value.getFullYear(),
+    currentDate.value.getMonth() + 1
+  );
+};
+
+const selectTask = (taskId: string) => {
+  emit("select:task", taskId);
 };
 </script>
 
@@ -53,20 +75,18 @@ const nextMonth = () => {
   <div class="bg-white rounded-xl shadow-sm border border-indigo-300 p-6">
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-lg font-semibold text-gray-900">
-        {{ format(currentDate, 'MMMM yyyy') }}
+        {{ format(currentDate, "MMMM yyyy") }}
       </h2>
       <div class="flex gap-2">
-        <button @click="previousMonth" class="btn-secondary">
-          Previous
-        </button>
-        <button @click="nextMonth" class="btn-secondary">
-          Next
-        </button>
+        <button @click="previousMonth" class="btn-secondary">Previous</button>
+        <button @click="nextMonth" class="btn-secondary">Next</button>
       </div>
     </div>
 
     <div class="grid grid-cols-7 gap-1">
-      <template v-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']">
+      <template
+        v-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']"
+      >
         <div class="p-2 text-center text-sm font-medium text-gray-500">
           {{ day }}
         </div>
@@ -77,25 +97,28 @@ const nextMonth = () => {
           class="p-2 border rounded-lg"
           :class="{
             'bg-indigo-50 border-indigo-200': isToday(date),
-            'bg-gray-50 border-gray-200': !isToday(date) && isSameMonth(date, currentDate),
-            'bg-gray-100 border-gray-300': !isSameMonth(date, currentDate)
+            'bg-gray-50 border-gray-200':
+              !isToday(date) && isSameMonth(date, currentDate),
+            'bg-gray-100 border-gray-300': !isSameMonth(date, currentDate),
           }"
         >
-          <div class="text-sm font-medium mb-1"
+          <div
+            class="text-sm font-medium mb-1"
             :class="{
               'text-indigo-600': isToday(date),
-              'text-gray-900': !isToday(date) && isSameMonth(date, currentDate),
-              'text-gray-400': !isSameMonth(date, currentDate)
+              'text-indigo-950': !isToday(date) && isSameMonth(date, currentDate),
+              'text-gray-400': !isSameMonth(date, currentDate),
             }"
           >
-            {{ format(date, 'd') }}
+            {{ format(date, "d") }}
           </div>
-          
+
           <div class="space-y-1">
             <div
               v-for="task in tasksForDate(date)"
               :key="task.id"
-              class="text-xs p-1 rounded bg-white border border-gray-200 truncate"
+              @click="selectTask(task.id)"
+              class="w-full cursor-pointer text-left text-xs p-1 rounded bg-white border border-gray-200 truncate hover:bg-indigo-200 hover:border-indigo-200 transition-colors"
               :class="{ 'line-through opacity-50': task.completed }"
             >
               {{ task.title }}

@@ -182,7 +182,7 @@ const getDueStatus = computed(() => {
 
             <span
               v-if="task.dueDate && getDueStatus"
-              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+              class="inline-flex items-center bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-xs font-medium"
               :class="getDueStatus.class"
             >
               {{ getDueStatus.text }}
@@ -190,7 +190,7 @@ const getDueStatus = computed(() => {
 
             <div
               v-if="task.dueDate"
-              class="flex items-center gap-2 text-sm text-gray-500"
+              class="flex items-center gap-2 text-sm text-emerald-600"
             >
               <CalendarIcon class="w-4 h-4" />
               <span>Due Date: {{ formatDate(task.dueDate) }}</span>
@@ -209,7 +209,7 @@ const getDueStatus = computed(() => {
             <span
               v-for="label in task.labels"
               :key="label"
-              class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-xs"
+              class="px-2 py-0.5 rounded-full bg-gray-50 text-indigo-600 text-xs"
             >
               {{ label }}
             </span>
@@ -244,7 +244,7 @@ const getDueStatus = computed(() => {
             <input
               v-model="editedDueDate"
               type="date"
-              :min="format(new Date(), 'yyyy-MM-dd')" 
+              :min="format(new Date(), 'yyyy-MM-dd')"
               class="p-2 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
             />
           </div>
