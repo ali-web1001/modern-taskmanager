@@ -5,11 +5,15 @@ import router from './router';
 import App from './App.vue';
 import './style.css';
 import 'v-calendar/style.css';
+import toastPlugin from './plugins/toast';
+import alertPlugin from './plugins/alert';
 
 const app = createApp(App);
 const pinia = createPinia();
 
+app.use(alertPlugin);
 app.use(pinia);
+app.use(toastPlugin);
 app.use(router);
 app.use(VCalendar, {});
 

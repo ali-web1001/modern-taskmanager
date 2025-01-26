@@ -35,7 +35,7 @@ const handleLogin = async () => {
       <p class="mt-2 text-center text-sm text-gray-600">
         Or
         <router-link to="/register" class="font-medium text-indigo-600 hover:text-indigo-500">
-          create a new account
+          Create a New Account
         </router-link>
       </p>
     </div>

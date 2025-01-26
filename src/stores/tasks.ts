@@ -1,10 +1,14 @@
-import { defineStore } from 'pinia';
-import { supabase } from '../lib/supabase';
-import type { Task } from '../types/task';
-import type { Database } from '../types/supabase';
-import { useAuthStore } from './auth';
+import { defineStore } from "pinia";
+import { supabase } from "../lib/supabase";
+import type { Task } from "../types/task";
+import type { Database } from "../types/supabase";
+import { useAuthStore } from "./auth";
+import { useToast } from "vue-toastification";
+import Swal from "sweetalert2";
 
-type DbTask = Database['public']['Tables']['tasks']['Row'];
+const toast = useToast();
+
+type DbTask = Database["public"]["Tables"]["tasks"]["Row"];
 
 interface TaskState {
   tasks: Task[];
@@ -24,7 +28,7 @@ const mapDbTaskToTask = (dbTask: DbTask): Task => ({
   category: dbTask.category || undefined,
 });
 
-export const useTaskStore = defineStore('tasks', {
+export const useTaskStore = defineStore("tasks", {
   state: (): TaskState => ({
     tasks: [],
     loading: false,
@@ -52,30 +56,32 @@ export const useTaskStore = defineStore('tasks', {
       }
 
       this.subscription = supabase
-        .channel('tasks-channel')
+        .channel("tasks-channel")
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: '*',
-            schema: 'public',
-            table: 'tasks',
+            event: "*",
+            schema: "public",
+            table: "tasks",
             filter: `user_id=eq.${userId}`,
           },
           (payload) => {
-            if (payload.eventType === 'INSERT') {
+            if (payload.eventType === "INSERT") {
               const newTask = mapDbTaskToTask(payload.new as DbTask);
               // Check if task already exists to prevent duplicates
-              const existingTaskIndex = this.tasks.findIndex(t => t.id === newTask.id);
+              const existingTaskIndex = this.tasks.findIndex(
+                (t) => t.id === newTask.id
+              );
               if (existingTaskIndex === -1) {
                 this.tasks.unshift(newTask);
               }
-            } else if (payload.eventType === 'UPDATE') {
+            } else if (payload.eventType === "UPDATE") {
               const updatedTask = mapDbTaskToTask(payload.new as DbTask);
               const index = this.tasks.findIndex(
                 (t) => t.id === updatedTask.id
               );
               if (index !== -1) this.tasks[index] = updatedTask;
-            } else if (payload.eventType === 'DELETE') {
+            } else if (payload.eventType === "DELETE") {
               const deletedId = (payload.old as DbTask).id;
               this.tasks = this.tasks.filter((t) => t.id !== deletedId);
             }
@@ -91,10 +97,10 @@ export const useTaskStore = defineStore('tasks', {
 
         this.loading = true;
         const { data, error } = await supabase
-          .from('tasks')
-          .select('*')
-          .eq('user_id', authStore.user.id)
-          .order('created_at', { ascending: false });
+          .from("tasks")
+          .select("*")
+          .eq("user_id", authStore.user.id)
+          .order("created_at", { ascending: false });
 
         if (error) throw error;
         this.tasks = (data || []).map(mapDbTaskToTask);
@@ -111,10 +117,10 @@ export const useTaskStore = defineStore('tasks', {
     async createTask(task: Partial<Task>) {
       try {
         const authStore = useAuthStore();
-        if (!authStore.user) throw new Error('User not authenticated');
+        if (!authStore.user) throw new Error("User not authenticated");
 
         const { data, error } = await supabase
-          .from('tasks')
+          .from("tasks")
           .insert({
             title: task.title,
             completed: task.completed || false,
@@ -129,8 +135,11 @@ export const useTaskStore = defineStore('tasks', {
         if (error) throw error;
         const newTask = mapDbTaskToTask(data as DbTask);
         this.tasks.unshift(newTask); // Optimistic update
+
+        toast.success("Task Added Successfully!");
       } catch (error: any) {
         this.error = error.message;
+        toast.error("Failed to add the task!");
         throw error;
       }
     },
@@ -138,7 +147,7 @@ export const useTaskStore = defineStore('tasks', {
     async updateTask(id: string, updates: Partial<Task>) {
       try {
         const { data, error } = await supabase
-          .from('tasks')
+          .from("tasks")
           .update({
             title: updates.title,
             completed: updates.completed,
@@ -147,7 +156,7 @@ export const useTaskStore = defineStore('tasks', {
             category: updates.category,
             labels: updates.labels,
           })
-          .eq('id', id)
+          .eq("id", id)
           .select()
           .single();
 
@@ -157,8 +166,11 @@ export const useTaskStore = defineStore('tasks', {
         const updatedTask = mapDbTaskToTask(data as DbTask);
         const index = this.tasks.findIndex((t) => t.id === id);
         if (index !== -1) this.tasks[index] = updatedTask;
+        // Toast success message
+        toast.success("Task updated successfully!");
       } catch (error: any) {
         this.error = error.message;
+        toast.error("Failed to update the task!");
         throw error;
       }
     },
@@ -167,11 +179,11 @@ export const useTaskStore = defineStore('tasks', {
       try {
         // Soft delete: update the task with a deleted_at timestamp
         const { data, error } = await supabase
-          .from('tasks')
+          .from("tasks")
           .update({
-            deleted_at: new Date().toISOString()
+            deleted_at: new Date().toISOString(),
           })
-          .eq('id', id)
+          .eq("id", id)
           .select()
           .single();
 
@@ -181,8 +193,11 @@ export const useTaskStore = defineStore('tasks', {
         const updatedTask = mapDbTaskToTask(data as DbTask);
         const index = this.tasks.findIndex((t) => t.id === id);
         if (index !== -1) this.tasks[index] = updatedTask;
+        // Toast success message
+        toast.success("Task deleted temporarily!");
       } catch (error: any) {
         this.error = error.message;
+        toast.error("Failed to delete the task!");
         throw error;
       }
     },
@@ -191,11 +206,11 @@ export const useTaskStore = defineStore('tasks', {
       try {
         // Restore the task by removing the deleted_at timestamp
         const { data, error } = await supabase
-          .from('tasks')
+          .from("tasks")
           .update({
-            deleted_at: null
+            deleted_at: null,
           })
-          .eq('id', id)
+          .eq("id", id)
           .select()
           .single();
 
@@ -205,26 +220,40 @@ export const useTaskStore = defineStore('tasks', {
         const updatedTask = mapDbTaskToTask(data as DbTask);
         const index = this.tasks.findIndex((t) => t.id === id);
         if (index !== -1) this.tasks[index] = updatedTask;
+        // Toast success message
+        toast.success("Task restored successfully!");
       } catch (error: any) {
         this.error = error.message;
+        toast.error("Failed to restore task!");
         throw error;
       }
     },
 
     async permanentlyDeleteTask(id: string) {
       try {
+        // Show confirmation dialog
+        const result = await Swal.fire({
+          title: "Are you sure?",
+          text: "This will permanently delete the task!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Yes, delete it!",
+        });
+
+        if (!result.isConfirmed) return;
+
         // Permanently remove the task from the database
-        const { error } = await supabase
-          .from('tasks')
-          .delete()
-          .eq('id', id);
-
+        const { error } = await supabase.from("tasks").delete().eq("id", id);
         if (error) throw error;
-
         // Optimistic update: remove the task from local state
         this.tasks = this.tasks.filter((t) => t.id !== id);
+        // Toast success message
+        toast.success("Task permanently deleted!");
       } catch (error: any) {
         this.error = error.message;
+        toast.error("Failed to permanently delete the task!");
         throw error;
       }
     },

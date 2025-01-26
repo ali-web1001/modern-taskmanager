@@ -50,7 +50,7 @@ const nextMonth = () => {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+  <div class="bg-white rounded-xl shadow-sm border border-indigo-300 p-6">
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-lg font-semibold text-gray-900">
         {{ format(currentDate, 'MMMM yyyy') }}
