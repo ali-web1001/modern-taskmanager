@@ -11,10 +11,10 @@ import alertPlugin from './plugins/alert';
 const app = createApp(App);
 const pinia = createPinia();
 
-app.use(alertPlugin);
-app.use(pinia);
-app.use(toastPlugin);
 app.use(router);
+app.use(pinia);
+app.use(alertPlugin);
+app.use(toastPlugin);
 app.use(VCalendar, {});
 
 // Initialize auth check before mounting

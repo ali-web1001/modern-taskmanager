@@ -9,6 +9,7 @@ import TaskInput from "../components/TaskInput.vue";
 import TaskFilters from "../components/TaskFilters.vue";
 import TaskCalendar from "../components/TaskCalendar.vue";
 import { CalendarIcon } from "@heroicons/vue/24/outline";
+import UserMenu from "../components/UserMenu.vue";
 
 const router = useRouter();
 const taskStore = useTaskStore();
@@ -78,10 +79,10 @@ const restoreTask = async (id: string) => {
   await taskStore.restoreTask(id);
 };
 
-const handleLogout = async () => {
-  await authStore.logout();
-  router.push("/");
-};
+// const handleLogout = async () => {
+//   await authStore.logout();
+//   router.push("/");
+// };
 
 const navigateToLogin = () => {
   router.push("/login");
@@ -124,10 +125,11 @@ const handleTaskSelect = (taskId: string) => {
 
         <div class="flex items-center gap-4">
           <template v-if="authStore.isAuthenticated">
-            <span class="text-gray-600">{{
+              <UserMenu />
+            <!-- <span class="text-gray-600">{{
               authStore.user?.user_metadata?.name || authStore.user?.email
-            }}</span>
-            <button @click="handleLogout" class="btn-secondary">Logout</button>
+            }}</span> -->
+            <!-- <button @click="handleLogout" class="btn-secondary">Logout</button> -->
           </template>
 
           <template v-else>
@@ -138,6 +140,7 @@ const handleTaskSelect = (taskId: string) => {
               Sign Up
             </button>
           </template>
+          
         </div>
       </div>
 
