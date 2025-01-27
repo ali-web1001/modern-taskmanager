@@ -3,9 +3,11 @@ import { ref, onMounted } from "vue";
 import { useAuthStore } from "../stores/auth";
 import { useRouter } from "vue-router";
 import { ArrowLeftIcon } from "@heroicons/vue/24/outline";
+import { useToast } from "vue-toastification";
 
 const authStore = useAuthStore();
 const router = useRouter();
+const toast = useToast();
 
 const name = ref("");
 const email = ref("");
@@ -39,23 +41,26 @@ const updateProfile = async () => {
     loading.value = true;
     error.value = "";
 
-    const updateData: { name: string; avatar_url?: string } = {
+    const updateData: { name: string; avatar_url?: string | File } = {
       name: name.value,
     };
 
     if (avatarFile.value) {
-      updateData.avatar_url = await avatarFile.value.text();
+      updateData.avatar_url = avatarFile.value; // Pass the File object directly
     }
 
     await authStore.updateProfile(updateData);
 
     success.value = true;
+    toast.success("Profile Updated Successfully!");
+
     setTimeout(() => {
       success.value = false;
-      router.push("/"); // Redirect to home after successful update
+      router.push("/");
     }, 2000);
   } catch (err: any) {
     error.value = err.message;
+    toast.error("Profile Failed to Update!");
   } finally {
     loading.value = false;
   }

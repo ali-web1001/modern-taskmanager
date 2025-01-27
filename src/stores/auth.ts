@@ -9,8 +9,13 @@ interface AuthState {
 
 interface ProfileUpdateData {
   name: string;
-  avatar_url?: string;
+  avatar_url?: string | File; // Modified to accept File type
 }
+
+// interface UploadResponse {
+//   path: string;
+//   fullPath: string;
+// }
 
 export const useAuthStore = defineStore("auth", {
   state: (): AuthState => ({
@@ -62,6 +67,13 @@ export const useAuthStore = defineStore("auth", {
           provider,
           options: {
             redirectTo: `${window.location.origin}/auth/callback`,
+            // Add these options for better cookie handling
+            // cookieOptions: {
+            //   name: "sb-auth-token",
+            //   lifetime: 60 * 60 * 24 * 7, // 1 week
+            //   domain: window.location.hostname,
+            //   sameSite: "Lax",
+            // },
           },
         });
 
@@ -105,41 +117,72 @@ export const useAuthStore = defineStore("auth", {
           throw new Error("You must be logged in to update your profile");
         }
 
-        // If there's an avatar URL, update it
-        if (data.avatar_url) {
-          const fileName = `avatar-${this.user.id}-${Date.now()}`;
-          const { error: uploadError } = await supabase.storage
-            .from("avatars")
-            .upload(fileName, data.avatar_url);
+        let avatarUrl = data.avatar_url;
 
-          if (uploadError) throw uploadError;
+        // Handle file upload if the avatar_url is actually a File object
+        if (data.avatar_url instanceof File) {
+          const file = data.avatar_url;
+          const fileExt = file.name.split(".").pop();
+          const fileName = `avatar-${this.user.id}-${Date.now()}.${fileExt}`;
 
+          // Upload the file to Supabase Storage and use the upload response
+          const { data: uploadData, error: uploadError } =
+            await supabase.storage.from("avatars").upload(fileName, file, {
+              cacheControl: "3600",
+              upsert: true,
+              contentType: file.type,
+            });
+
+          if (uploadError) {
+            console.error("Upload error:", uploadError);
+            throw new Error("Failed to upload avatar image");
+          }
+
+          // Verify upload was successful and we have the file path
+          if (!uploadData?.path) {
+            throw new Error("Upload succeeded but file path is missing");
+          }
+
+          // Get the public URL using the path from the upload response
           const { data: urlData } = supabase.storage
             .from("avatars")
-            .getPublicUrl(fileName);
+            .getPublicUrl(uploadData.path);
 
-          data.avatar_url = urlData.publicUrl;
+          if (!urlData?.publicUrl) {
+            throw new Error("Failed to generate public URL for uploaded file");
+          }
+
+          avatarUrl = urlData.publicUrl;
         }
 
-        const { error } = await supabase.auth.updateUser({
+        // Update user profile with new data
+        const { error: updateError } = await supabase.auth.updateUser({
           data: {
             name: data.name,
-            avatar_url: data.avatar_url,
+            avatar_url: avatarUrl,
           },
         });
 
-        if (error) throw error;
+        if (updateError) {
+          console.error("Profile update error:", updateError);
+          throw updateError;
+        }
 
         // Update local user state
         if (this.user) {
           this.user.user_metadata = {
             ...this.user.user_metadata,
-            ...data,
+            name: data.name,
+            avatar_url: avatarUrl,
           };
         }
 
-        return { success: true };
+        return {
+          success: true,
+          avatarUrl, // Return the new avatar URL in case it's needed
+        };
       } catch (error: any) {
+        console.error("Profile update failed:", error);
         throw new Error(error.message || "Failed to update profile");
       }
     },
