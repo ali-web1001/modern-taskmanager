@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { TASK_CATEGORIES, TASK_LABELS, type TaskFilter } from "../types/task";
 import { ref } from "vue";
-import { FunnelIcon} from "@heroicons/vue/24/outline";
+import { FunnelIcon } from "@heroicons/vue/24/outline";
 
 const showFilters = ref(false);
 
@@ -33,6 +33,8 @@ const resetFilters = () => {
     showDeleted: false,
     selectedLabels: [],
     selectedCategory: undefined,
+    startDate: undefined,
+    endDate: undefined,
   });
   showFilters.value = true;
 };
@@ -65,14 +67,17 @@ if (typeof window !== "undefined") {
         v-if="
           modelValue.showDeleted ||
           modelValue.selectedCategory ||
-          modelValue.selectedLabels.length > 0
+          modelValue.selectedLabels.length > 0 ||
+          modelValue.startDate ||
+          modelValue.endDate
         "
         class="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-xs font-medium text-indigo-600"
       >
         {{
           (modelValue.showDeleted ? 1 : 0) +
           (modelValue.selectedCategory ? 1 : 0) +
-          (modelValue.selectedLabels.length > 0 ? 1 : 0)
+          (modelValue.selectedLabels.length > 0 ? 1 : 0) +
+          (modelValue.startDate || modelValue.endDate ? 1 : 0)
         }}
       </span>
     </button>
@@ -95,6 +100,34 @@ if (typeof window !== "undefined") {
             Reset All
           </button>
         </div>
+
+        <!-- Date Range Filter -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700"
+            >Due Date Range</label
+          >
+          <div class="space-y-2">
+            <div>
+              <label class="text-xs text-gray-500">From</label>
+              <input
+                type="date"
+                v-model="modelValue.startDate"
+                @change="updateFilter({ startDate: modelValue.startDate })"
+                class="input-primary w-full text-sm"
+              />
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">To</label>
+              <input
+                type="date"
+                v-model="modelValue.endDate"
+                @change="updateFilter({ endDate: modelValue.endDate })"
+                class="input-primary w-full text-sm"
+              />
+            </div>
+          </div>
+        </div>
+
         <!-- Show Deleted Tasks -->
         <div class="flex items-center justify-between">
           <span class="text-sm text-gray-700">Show deleted tasks</span>
@@ -149,6 +182,7 @@ if (typeof window !== "undefined") {
                 />
               </svg>
             </div>
+
             <!-- Clear Button -->
             <button
               v-if="modelValue.selectedCategory"

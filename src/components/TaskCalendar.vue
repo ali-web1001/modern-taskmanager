@@ -84,43 +84,31 @@ const selectTask = (taskId: string) => {
     </div>
 
     <div class="grid grid-cols-7 gap-1">
-      <template
-        v-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']"
-      >
+      <template v-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']">
         <div class="p-2 text-center text-sm font-medium text-gray-500">
           {{ day }}
         </div>
       </template>
 
       <template v-for="date in calendarDays" :key="date.toISOString()">
-        <div
-          class="p-2 border rounded-lg"
-          :class="{
-            'bg-indigo-50 border-indigo-200': isToday(date),
-            'bg-gray-50 border-gray-200':
-              !isToday(date) && isSameMonth(date, currentDate),
-            'bg-gray-100 border-gray-300': !isSameMonth(date, currentDate),
-          }"
-        >
-          <div
-            class="text-sm font-medium mb-1"
-            :class="{
-              'text-indigo-600': isToday(date),
-              'text-indigo-950': !isToday(date) && isSameMonth(date, currentDate),
-              'text-gray-400': !isSameMonth(date, currentDate),
-            }"
-          >
+        <div class="p-2 border rounded-lg" :class="{
+          'bg-indigo-50 border-indigo-200': isToday(date),
+          'bg-gray-50 border-gray-200':
+            !isToday(date) && isSameMonth(date, currentDate),
+          'bg-gray-100 border-gray-300': !isSameMonth(date, currentDate),
+        }">
+          <div class="text-sm font-medium mb-1" :class="{
+            'text-indigo-600': isToday(date),
+            'text-indigo-950': !isToday(date) && isSameMonth(date, currentDate),
+            'text-gray-400': !isSameMonth(date, currentDate),
+          }">
             {{ format(date, "d") }}
           </div>
 
           <div class="space-y-1">
-            <div
-              v-for="task in tasksForDate(date)"
-              :key="task.id"
-              @click="selectTask(task.id)"
+            <div v-for="task in tasksForDate(date)" :key="task.id" @click="selectTask(task.id)"
               class="w-full cursor-pointer text-left text-xs p-1 rounded bg-white border border-gray-200 truncate hover:bg-indigo-200 hover:border-indigo-200 transition-colors"
-              :class="{ 'line-through opacity-50': task.completed }"
-            >
+              :class="{ 'line-through opacity-50': task.completed }">
               {{ task.title }}
             </div>
           </div>

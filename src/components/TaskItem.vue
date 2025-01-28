@@ -169,7 +169,7 @@ const getDueStatus = computed(() => {
 
             <span
               v-if="task.category"
-              class="px-2 py-0.5 rounded-lg bg-gray-100 text-gray-600 text-sm"
+              class="px-2 py-0.5 rounded-lg bg-gray-200 text-gray-600 text-sm"
             >
               {{ task.category }}
             </span>
@@ -209,22 +209,12 @@ const getDueStatus = computed(() => {
             <span
               v-for="label in task.labels"
               :key="label"
-              class="px-2 py-0.5 rounded-full bg-gray-50 text-indigo-600 text-xs"
+              class="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 text-xs"
             >
               {{ label }}
             </span>
           </div>
         </div>
-
-        <!-- <input
-          v-else
-          v-model="editedTitle"
-          @keyup.enter="saveEdit"
-          @keyup.esc="cancelEdit"
-          class="ml-3 flex-1 p-2 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
-          type="text"
-          
-        /> -->
 
         <div v-else class="ml-3 flex-1 space-y-4">
           <!-- Title Input -->

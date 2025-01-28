@@ -128,13 +128,13 @@ export const useAuthStore = defineStore("auth", {
           // Upload the file to Supabase Storage and use the upload response
           const { data: uploadData, error: uploadError } =
             await supabase.storage.from("avatars").upload(fileName, file, {
-              cacheControl: "3600",
+              cacheControl: "86400",
               upsert: true,
               contentType: file.type,
             });
 
           if (uploadError) {
-            console.error("Upload error:", uploadError);
+            // console.error("Upload error:", uploadError);
             throw new Error("Failed to upload avatar image");
           }
 
@@ -164,7 +164,7 @@ export const useAuthStore = defineStore("auth", {
         });
 
         if (updateError) {
-          console.error("Profile update error:", updateError);
+          // console.error("Profile update error:", updateError);
           throw updateError;
         }
 

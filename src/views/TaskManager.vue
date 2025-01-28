@@ -29,21 +29,137 @@ onMounted(async () => {
   }
 });
 
-const filteredTasks = computed(() => {
-  return taskStore.tasks.filter((task) => {
-    if (!filters.value.showDeleted && task.deletedAt) return false;
-    if (
-      filters.value.selectedCategory &&
-      task.category !== filters.value.selectedCategory
-    )
-      return false;
-    if (filters.value.selectedLabels.length > 0) {
-      const hasSelectedLabel = task.labels.some((label) =>
-        filters.value.selectedLabels.includes(label)
-      );
-      if (!hasSelectedLabel) return false;
-    }
+// Helper function to check if a task matches the current filters
+const taskMatchesFilters = (task: Task) => {
+  // When showing deleted tasks, we'll handle them separately in the sorting
+  if (filters.value.showDeleted) {
+    // Include both deleted and non-deleted tasks, they'll be sorted later
     return true;
+  }
+
+  // Don't show deleted tasks when showDeleted is false
+  if (task.deletedAt) return false;
+
+  // Check category
+  if (
+    filters.value.selectedCategory &&
+    task.category !== filters.value.selectedCategory
+  )
+    return false;
+
+  // Check labels
+  if (filters.value.selectedLabels.length > 0) {
+    const hasSelectedLabel = task.labels.some((label) =>
+      filters.value.selectedLabels.includes(label)
+    );
+    if (!hasSelectedLabel) return false;
+  }
+
+  // Check date range
+  if (filters.value.startDate || filters.value.endDate) {
+    if (!task.dueDate) return false;
+
+    const taskDate = new Date(task.dueDate);
+
+    if (filters.value.startDate) {
+      const startDate = new Date(filters.value.startDate);
+      if (taskDate < startDate) return false;
+    }
+
+    if (filters.value.endDate) {
+      const endDate = new Date(filters.value.endDate);
+      endDate.setHours(23, 59, 59, 999); // Include the entire end date
+      if (taskDate > endDate) return false;
+    }
+  }
+
+  return true;
+};
+
+// Helper function to calculate task priority score
+const getTaskPriorityScore = (task: Task) => {
+  let score = 0;
+
+  // When showing deleted tasks, prioritize them at the top
+  if (filters.value.showDeleted) {
+    // Assign highest priority to deleted tasks
+    if (task.deletedAt) {
+      score += 1000;
+      // Add recency bonus for deleted tasks (more recently deleted = higher priority)
+      const deletedDaysAgo = Math.ceil(
+        (Date.now() - task.deletedAt.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      score += Math.max(0, 30 - deletedDaysAgo); // Bonus points for recently deleted items
+    }
+  }
+
+  // Apply regular filter scoring for both deleted and non-deleted tasks
+  // Prioritize tasks that match the selected category
+  if (
+    filters.value.selectedCategory &&
+    task.category === filters.value.selectedCategory
+  ) {
+    score += 100;
+  }
+
+  // Add points for each matching label
+  if (filters.value.selectedLabels.length > 0) {
+    const matchingLabels = task.labels.filter((label) =>
+      filters.value.selectedLabels.includes(label)
+    );
+    score += matchingLabels.length * 50;
+  }
+
+  // Consider due date (tasks due sooner get higher priority)
+  if (task.dueDate && !task.deletedAt) {
+    // Only consider due dates for non-deleted tasks
+    const daysUntilDue = Math.ceil(
+      (task.dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    );
+    if (daysUntilDue < 0) {
+      score += 75; // Overdue tasks
+    } else if (daysUntilDue === 0) {
+      score += 50; // Due today
+    } else if (daysUntilDue <= 7) {
+      score += 25; // Due this week
+    }
+  }
+
+  return score;
+};
+
+const filteredTasks = computed(() => {
+  // First, filter tasks based on criteria
+  const matchingTasks = taskStore.tasks.filter(taskMatchesFilters);
+
+  // If no filters are active and we're not showing deleted tasks,
+  // return tasks in their original order
+  const hasActiveFilters =
+    filters.value.selectedCategory ||
+    filters.value.selectedLabels.length > 0 ||
+    filters.value.showDeleted;
+
+  if (!hasActiveFilters) {
+    return matchingTasks;
+  }
+
+  // Sort tasks based on priority score
+  return [...matchingTasks].sort((a, b) => {
+    const scoreA = getTaskPriorityScore(a);
+    const scoreB = getTaskPriorityScore(b);
+
+    // Sort by score (descending) and then by relevant date
+    if (scoreB !== scoreA) {
+      return scoreB - scoreA;
+    }
+
+    // For deleted tasks, sort by deletion date
+    if (a.deletedAt && b.deletedAt) {
+      return b.deletedAt.getTime() - a.deletedAt.getTime();
+    }
+
+    // For regular tasks, sort by creation date
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 });
 
@@ -114,7 +230,7 @@ const handleTaskSelect = (taskId: string) => {
 
 <template>
   <div class="min-h-screen bg-purple-50 py-6 px-4 sm:px-6">
-    <div class="max-w-5xl mx-auto">
+    <div class="max-w-4xl mx-auto">
       <div class="mb-6 flex flex-wrap gap-4 items-center justify-between">
         <div class="flex items-center gap-6">
           <div>
@@ -125,11 +241,7 @@ const handleTaskSelect = (taskId: string) => {
 
         <div class="flex items-center gap-4">
           <template v-if="authStore.isAuthenticated">
-              <UserMenu />
-            <!-- <span class="text-gray-600">{{
-              authStore.user?.user_metadata?.name || authStore.user?.email
-            }}</span> -->
-            <!-- <button @click="handleLogout" class="btn-secondary">Logout</button> -->
+            <UserMenu />
           </template>
 
           <template v-else>
@@ -140,17 +252,13 @@ const handleTaskSelect = (taskId: string) => {
               Sign Up
             </button>
           </template>
-          
         </div>
       </div>
 
       <div class="mb-3">
         <div class="flex items-center gap-2" v-if="authStore.isAuthenticated">
           <TaskFilters v-model="filters" />
-          <button
-            @click="toggleCalendar"
-            class="btn-secondary flex items-center gap-2"
-          >
+          <button @click="toggleCalendar" class="btn-secondary flex items-center gap-2">
             <CalendarIcon class="w-5 h-5" />
             {{ showCalendar ? "Hide Calendar" : "Show Calendar" }}
           </button>
@@ -159,55 +267,35 @@ const handleTaskSelect = (taskId: string) => {
 
       <template v-if="authStore.isAuthenticated">
         <!-- Calendar (Collapsible) -->
-        <Transition
-          enter-active-class="transition-all duration-300 ease-out"
-          enter-from-class="opacity-0 transform -translate-y-4"
-          enter-to-class="opacity-100 transform translate-y-0"
+        <Transition enter-active-class="transition-all duration-300 ease-out"
+          enter-from-class="opacity-0 transform -translate-y-4" enter-to-class="opacity-100 transform translate-y-0"
           leave-active-class="transition-all duration-300 ease-in"
-          leave-from-class="opacity-100 transform translate-y-0"
-          leave-to-class="opacity-0 transform -translate-y-4"
-        >
+          leave-from-class="opacity-100 transform translate-y-0" leave-to-class="opacity-0 transform -translate-y-4">
           <div v-if="showCalendar" class="mb-6">
-            <TaskCalendar
-              :tasks="filteredTasks"
-              @select:task="handleTaskSelect"
-            />
+            <TaskCalendar :tasks="filteredTasks" @select:task="handleTaskSelect" />
           </div>
         </Transition>
 
         <!-- Main Content -->
         <div class="space-y-4">
           <!-- Add Task Form -->
-          <div
-            class="bg-white rounded-xl shadow-md border border-indigo-300 p-4"
-          >
+          <div class="bg-white rounded-xl shadow-md border border-indigo-300 p-4">
             <TaskInput @add:task="addTask" />
           </div>
 
           <!-- Task List -->
           <div v-if="taskStore.loading" class="text-center py-8">
-            <div
-              class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"
-            ></div>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
           </div>
 
           <TransitionGroup v-else name="slide-fade" tag="div" class="space-y-3">
-            <TaskItem
-              v-for="task in filteredTasks"
-              :key="task.id"
-              :task="task"
-              :id="`task-${task.id}`"
-              @update:task="updateTask"
-              @delete:task="deleteTask"
-              @restore:task="restoreTask"
-              @permanent:delete="permanentlyDeleteTask"
-            />
+            <TaskItem v-for="task in filteredTasks" :key="task.id" :task="task" :id="`task-${task.id}`"
+              @update:task="updateTask" @delete:task="deleteTask" @restore:task="restoreTask"
+              @permanent:delete="permanentlyDeleteTask" />
           </TransitionGroup>
 
-          <p
-            v-if="filteredTasks.length === 0 && !taskStore.loading"
-            class="text-center text-gray-100 mt-8 bg-indigo-600 p-4 rounded-lg"
-          >
+          <p v-if="filteredTasks.length === 0 && !taskStore.loading"
+            class="text-center text-gray-100 mt-8 bg-indigo-600 p-4 rounded-lg">
             No tasks found. Try adjusting your filters or add a new task!
           </p>
           <!-- Sidebar (Right) -->
