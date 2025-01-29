@@ -141,7 +141,7 @@ const handleDateSelect = (date: Date | null) => {
   <form @submit.prevent="addTask" class="space-y-4">
     <div class="flex flex-col sm:flex-row gap-3">
       <div class="flex-1">
-        <input
+        <textarea
           v-model="newTask"
           type="text"
           placeholder="Add a new task..."

@@ -45,7 +45,7 @@ const handleRegister = async () => {
         Or
         <router-link
           to="/login"
-          class="font-medium text-indigo-600 hover:text-indigo-500"
+          class="font-medium text-indigo-600 hover:text-indigo-500 underline"
         >
           Sign in to your account
         </router-link>

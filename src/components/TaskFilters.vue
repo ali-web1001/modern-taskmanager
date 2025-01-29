@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { TASK_CATEGORIES, TASK_LABELS, type TaskFilter } from "../types/task";
-import { ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { FunnelIcon } from "@heroicons/vue/24/outline";
+// import { useToast } from "vue-toastification";
 
 const showFilters = ref(false);
+// const toast = useToast();
 
 const props = defineProps<{
   modelValue: TaskFilter;
@@ -21,7 +23,8 @@ const updateFilter = (updates: Partial<TaskFilter>) => {
 };
 
 const toggleLabel = (label: string) => {
-  const labels = props.modelValue.selectedLabels;
+  const labels = [...props.modelValue.selectedLabels];
+
   const newLabels = labels.includes(label)
     ? labels.filter((l) => l !== label)
     : [...labels, label];
@@ -32,11 +35,12 @@ const resetFilters = () => {
   updateFilter({
     showDeleted: false,
     selectedLabels: [],
-    selectedCategory: undefined,
+    selectedCategory: "",
     startDate: undefined,
     endDate: undefined,
   });
-  showFilters.value = true;
+  showFilters.value = false;
+  // toast.success("All filters cleared");
 };
 
 const closeFilters = (event: MouseEvent) => {
@@ -46,10 +50,18 @@ const closeFilters = (event: MouseEvent) => {
   }
 };
 
-// Add click outside listener
-if (typeof window !== "undefined") {
+onMounted(() => {
   window.addEventListener("click", closeFilters);
-}
+});
+
+onUnmounted(() => {
+  window.removeEventListener("click", closeFilters);
+});
+
+// // Add click outside listener
+// if (typeof window !== "undefined") {
+//   window.addEventListener("click", closeFilters);
+// }
 </script>
 
 <template>
@@ -111,17 +123,29 @@ if (typeof window !== "undefined") {
               <label class="text-xs text-gray-500">From</label>
               <input
                 type="date"
-                v-model="modelValue.startDate"
-                @change="updateFilter({ startDate: modelValue.startDate })"
+                :value="modelValue.startDate"
+                @input="
+                  updateFilter({
+                    startDate:
+                      ($event.target as HTMLInputElement).value || undefined,
+                  })
+                "
                 class="input-primary w-full text-sm"
               />
             </div>
             <div>
               <label class="text-xs text-gray-500">To</label>
+              <!-- //the date inputs were using v-model directly on the modelValue.startDate and modelValue.endDate. But in Vue, mutating props directly isn't recommended. Instead, the solution changed to using :value to bind the input's value and @input to handle changes. This way, when the user picks a date, the @input event triggers an updateFilter call, which emits the new value to the parent component. -->
               <input
                 type="date"
-                v-model="modelValue.endDate"
-                @change="updateFilter({ endDate: modelValue.endDate })"
+                :value="modelValue.endDate"
+                @input="
+                  updateFilter({
+                    endDate:
+                      // The TypeScript error about $event.target being possibly null was fixed by type-casting the event target to HTMLInputElement. This tells TypeScript that we're sure the target is an input element, so accessing .value is safe. Also, converting empty strings to undefined ensures the filter state stays clean.
+                      ($event.target as HTMLInputElement).value || undefined,
+                  })
+                "
                 class="input-primary w-full text-sm"
               />
             </div>
@@ -187,7 +211,7 @@ if (typeof window !== "undefined") {
             <button
               v-if="modelValue.selectedCategory"
               type="button"
-              @click="modelValue.selectedCategory = ''"
+              @click="updateFilter({ selectedCategory: '' })"
               class="absolute inset-y-0 right-8 flex items-center justify-center text-gray-400 hover:text-indigo-600 transition-all duration-200 rounded-full"
             >
               <svg

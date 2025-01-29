@@ -40,6 +40,8 @@ export const useTaskStore = defineStore("tasks", {
     getTasks: (state) => state.tasks,
     getTaskById: (state) => (id: string) =>
       state.tasks.find((task) => task.id === id),
+    getDeletedTasks: (state) => state.tasks.filter((task) => task.deletedAt),
+    getActiveTasks: (state) => state.tasks.filter((task) => !task.deletedAt),
   },
 
   actions: {
@@ -68,20 +70,23 @@ export const useTaskStore = defineStore("tasks", {
           (payload) => {
             if (payload.eventType === "INSERT") {
               const newTask = mapDbTaskToTask(payload.new as DbTask);
-              // Check if task already exists to prevent duplicates
-              const existingTaskIndex = this.tasks.findIndex(
-                (t) => t.id === newTask.id
-              );
-              if (existingTaskIndex === -1) {
-                this.tasks.unshift(newTask);
-              }
+              this.tasks.unshift(newTask);
             } else if (payload.eventType === "UPDATE") {
               const updatedTask = mapDbTaskToTask(payload.new as DbTask);
               const index = this.tasks.findIndex(
                 (t) => t.id === updatedTask.id
               );
+              //.findIndex() searches this.tasks to find a task that matches the updated task's ID.
+              // It returns the index of the found task.
+              // If no task is found, it returns -1.
+              // Replacing the old task with the updated one
+              // if (index !== -1) this.tasks[index] = updatedTask;
+              // If a task was found (index !== -1), it replaces the old task with the updated task.
+              // This ensures that our UI reflects the latest changes from the database.
               if (index !== -1) this.tasks[index] = updatedTask;
             } else if (payload.eventType === "DELETE") {
+              // payload.old contains the deleted row’s data before it was removed from the database.
+              // (payload.old as DbTask).id extracts the ID of the deleted task.
               const deletedId = (payload.old as DbTask).id;
               this.tasks = this.tasks.filter((t) => t.id !== deletedId);
             }
@@ -96,16 +101,18 @@ export const useTaskStore = defineStore("tasks", {
         if (!authStore.user) return;
 
         this.loading = true;
+
         const { data, error } = await supabase
           .from("tasks")
           .select("*")
           .eq("user_id", authStore.user.id)
+          .order("deleted_at", { ascending: true, nullsFirst: true })
           .order("created_at", { ascending: false });
 
         if (error) throw error;
         this.tasks = (data || []).map(mapDbTaskToTask);
 
-        // Setup real-time subscription
+        // Setup real-time subscription with the same filters
         await this.setupRealtimeSubscription();
       } catch (error: any) {
         this.error = error.message;

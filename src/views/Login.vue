@@ -48,7 +48,7 @@ const handleSocialLogin = async (provider: Provider) => {
         Or
         <router-link
           to="/register"
-          class="font-medium text-indigo-600 hover:text-indigo-500"
+          class="font-medium text-indigo-600 hover:text-indigo-500 underline"
         >
           Create a New Account
         </router-link>

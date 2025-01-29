@@ -10,6 +10,7 @@ import {
   CalendarIcon,
   ArrowUturnLeftIcon,
   TagIcon,
+  CheckIcon,
 } from "@heroicons/vue/24/outline";
 
 // Define props with Task type
@@ -135,11 +136,17 @@ const getDueStatus = computed(() => {
     };
   }
 });
+
+// Only show due date if not past due
+const shouldShowDueDate = computed(() => {
+  if (!props.task.dueDate) return false;
+  return !isPast(props.task.dueDate) || isToday(props.task.dueDate);
+});
 </script>
 
 <template>
   <div
-    class="task-card group"
+    class="task-card group p-4 border rounded-lg shadow-sm bg-white"
     :class="{
       'opacity-75': task.completed,
       'bg-gray-50': task.deletedAt,
@@ -148,8 +155,9 @@ const getDueStatus = computed(() => {
     <div class="flex items-center justify-between gap-4">
       <div class="flex items-center flex-1 min-w-0">
         <button
+          v-if="!isEditing"
           @click="toggleComplete"
-          class="p-1.5 rounded-full hover:bg-indigo-50 transition-colors"
+          class="p-1.5 rounded-full hover:bg-indigo-50 transition-colors shrink-0"
           :disabled="!!task.deletedAt"
         >
           <CheckCircleIcon
@@ -159,9 +167,11 @@ const getDueStatus = computed(() => {
         </button>
 
         <div v-if="!isEditing" class="ml-3 flex-1 min-w-0">
-          <div class="flex items-center gap-2">
+          <div
+            class="flex flex-col sm:flex-row items-start sm:items-center gap-2"
+          >
             <span
-              class="text-gray-700 text-lg"
+              class="text-gray-700 text-lg break-words"
               :class="{ 'line-through text-gray-400': task.completed }"
             >
               {{ task.title }}
@@ -169,38 +179,41 @@ const getDueStatus = computed(() => {
 
             <span
               v-if="task.category"
-              class="px-2 py-0.5 rounded-lg bg-gray-200 text-gray-600 text-sm"
+              class="px-2 py-0.5 rounded-lg bg-gray-200 text-gray-600 text-sm whitespace-nowrap"
             >
               {{ task.category }}
             </span>
           </div>
 
-          <div class="flex flex-wrap items-center gap-3 mt-2">
-            <div class="mt-2 text-sm text-gray-500">
+          <div
+            class="flex flex-col sm:flex-row flex-wrap items-start gap-3 mt-2"
+          >
+            <div class="text-sm text-gray-500">
               Created {{ formatDate(new Date(task.createdAt)) }}
             </div>
 
             <span
               v-if="task.dueDate && getDueStatus"
-              class="inline-flex items-center bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-xs font-medium"
+              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1 sm:mt-0"
               :class="getDueStatus.class"
             >
               {{ getDueStatus.text }}
             </span>
 
             <div
-              v-if="task.dueDate"
-              class="flex items-center gap-2 text-sm text-emerald-600"
+              v-if="shouldShowDueDate"
+              class="flex items-center gap-2 text-sm text-gray-500"
             >
-              <CalendarIcon class="w-4 h-4" />
-              <span>Due Date: {{ formatDate(task.dueDate) }}</span>
+              <CalendarIcon class="w-4 h-4 shrink-0" />
+              <!-- add a non-null assertion operator (!) to tell TypeScript that dueDate is guaranteed to exist when shouldShowDueDate is true. Non-null Assertion (!): By adding task.dueDate!, you assert that dueDate is not undefined in this context. This is safe because the v-if="shouldShowDueDate" condition ensures dueDate exists.-->
+              <span>Due Date: {{ formatDate(task.dueDate!) }}</span>
             </div>
 
             <div
               v-if="task.deletedAt"
               class="flex items-center gap-2 text-sm text-red-500"
             >
-              <TrashIcon class="w-4 h-4" />
+              <TrashIcon class="w-4 h-4 shrink-0" />
               <span>Deleted: {{ formatDate(task.deletedAt) }}</span>
             </div>
           </div>
@@ -216,77 +229,113 @@ const getDueStatus = computed(() => {
           </div>
         </div>
 
-        <div v-else class="ml-3 flex-1 space-y-4">
-          <!-- Title Input -->
-          <input
-            v-model="editedTitle"
-            @keyup.enter="saveEdit"
-            @keyup.esc="cancelEdit"
-            class="w-full p-2 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
-            type="text"
-            ref="editInput"
-            placeholder="Task title"
-          />
-
-          <!-- Due Date Input -->
-          <div class="flex items-center gap-2">
-            <CalendarIcon class="w-5 h-5 text-gray-400" />
-            <input
-              v-model="editedDueDate"
-              type="date"
-              :min="format(new Date(), 'yyyy-MM-dd')"
-              class="p-2 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
-            />
-          </div>
-
-          <!-- Category Input -->
-          <div class="flex items-center gap-2">
-            <TagIcon class="w-5 h-5 text-gray-400" />
-            <input
-              v-model="editedCategory"
-              type="text"
-              placeholder="Category"
-              class="p-2 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
-            />
-          </div>
-
-          <!-- Labels Input -->
-          <div class="space-y-2">
-            <div class="flex items-center gap-2">
-              <input
-                v-model="newLabel"
-                @keyup.enter="addLabel"
+        <!-- Edit Mode -->
+        <div v-else class="ml-3 flex-1 w-full">
+          <div class="space-y-4 w-full">
+            <!-- Title Input -->
+            <div class="w-full">
+              <textarea
+                v-model="editedTitle"
+                @keyup.enter="saveEdit"
+                @keyup.esc="cancelEdit"
+                class="w-full p-2.5 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 type="text"
-                placeholder="Add label"
-                class="flex-1 p-2 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                placeholder="Task title"
               />
-              <button
-                @click="addLabel"
-                class="px-3 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100"
-              >
-                Add
-              </button>
             </div>
 
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="label in editedLabels"
-                :key="label"
-                class="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-xs"
-              >
-                {{ label }}
+            <!-- Date and Category Row -->
+            <div class="flex flex-col sm:flex-row gap-4 w-full">
+              <!-- Due Date -->
+              <div class="w-full">
+                <div class="flex items-center gap-2 w-full">
+                  <CalendarIcon class="w-5 h-5 text-gray-400 shrink-0" />
+                  <input
+                    v-model="editedDueDate"
+                    type="date"
+                    :min="format(new Date(), 'yyyy-MM-dd')"
+                    class="w-full p-2.5 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  />
+                </div>
+              </div>
+
+              <!-- Category -->
+              <div class="w-full">
+                <div class="flex items-center gap-2 w-full">
+                  <input
+                    v-model="editedCategory"
+                    type="text"
+                    placeholder="Category"
+                    class="w-full p-2.5 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Labels Section -->
+            <div class="space-y-3 w-full">
+              <div class="flex flex-col sm:flex-row gap-2 w-full">
+                <TagIcon class="w-5 h-5 text-gray-400 shrink-0" />
+                <input
+                  v-model="newLabel"
+                  @keyup.enter="addLabel"
+                  type="text"
+                  placeholder="Add label"
+                  class="w-full p-2.5 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                />
                 <button
-                  @click="removeLabel(label)"
-                  class="ml-1.5 text-indigo-500 hover:text-indigo-700"
+                  @click="addLabel"
+                  class="w-full sm:w-auto px-4 py-2.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 whitespace-nowrap"
                 >
-                  <XMarkIcon class="w-3 h-3" />
+                  Add Label
                 </button>
-              </span>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="label in editedLabels"
+                  :key="label"
+                  class="inline-flex items-center px-2 py-1 rounded-full bg-indigo-50 text-indigo-600 text-sm"
+                >
+                  {{ label }}
+                  <button
+                    @click="removeLabel(label)"
+                    class="ml-1.5 text-indigo-500 hover:text-indigo-700"
+                  >
+                    <XMarkIcon class="w-4 h-4" />
+                  </button>
+                </span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 w-full pt-4">
+              <button
+                @click="saveEdit"
+                class="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                <CheckIcon class="w-5 h-5" />
+              </button>
+
+              <button
+                @click="cancelEdit"
+                class="p-2 hover:bg-gray-100 rounded-lg border border-gray-200 text-gray-600"
+              >
+                <XMarkIcon class="w-5 h-5" />
+              </button>
+
+              <!-- <button
+                @click="cancelEdit"
+                class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button> -->
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Action Icons -->
       <div
         class="flex items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
       >
@@ -294,41 +343,34 @@ const getDueStatus = computed(() => {
           <template v-if="task.deletedAt">
             <button
               @click="restoreTask"
-              class="btn-secondary p-2 hover:bg-green-50 hover:text-green-500 hover:border-green-200"
+              class="p-2 hover:bg-green-50 rounded-lg border border-gray-200 hover:border-green-200 text-gray-600 hover:text-green-600"
             >
-              <ArrowUturnLeftIcon class="w-4 h-4" />
+              <ArrowUturnLeftIcon class="w-5 h-5" />
             </button>
 
             <button
               @click="permanentlyDeleteTask"
-              class="btn-secondary p-2 hover:bg-red-50 hover:text-red-500 hover:border-red-200"
+              class="p-2 hover:bg-red-50 rounded-lg border border-gray-200 hover:border-red-200 text-gray-600 hover:text-red-600"
             >
-              <TrashIcon class="w-4 h-4" />
+              <TrashIcon class="w-5 h-5" />
             </button>
           </template>
 
           <template v-else>
-            <button @click="startEditing" class="btn-secondary p-2">
-              <PencilIcon class="w-4 h-4" />
+            <button
+              @click="startEditing"
+              class="p-2 hover:bg-indigo-50 rounded-lg border border-gray-200 hover:border-indigo-200 text-gray-600 hover:text-indigo-600"
+            >
+              <PencilIcon class="w-5 h-5" />
             </button>
 
             <button
               @click="deleteTask"
-              class="btn-secondary p-2 hover:bg-red-50 hover:text-red-500 hover:border-red-200"
+              class="p-2 hover:bg-red-50 rounded-lg border border-gray-200 hover:border-red-200 text-gray-600 hover:text-red-600"
             >
-              <TrashIcon class="w-4 h-4" />
+              <TrashIcon class="w-5 h-5" />
             </button>
           </template>
-        </template>
-
-        <template v-else>
-          <button @click="saveEdit" class="btn-primary py-1.5 px-3">
-            Save
-          </button>
-
-          <button @click="cancelEdit" class="btn-secondary p-2">
-            <XMarkIcon class="w-4 h-4" />
-          </button>
         </template>
       </div>
     </div>

@@ -5,7 +5,7 @@ export interface Task {
   completed: boolean;
   createdAt: Date;
   dueDate?: Date;
-  deletedAt?: Date;
+  deletedAt?: Date | null;
   labels: string[];
   category?: string;
 }
