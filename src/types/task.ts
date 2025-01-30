@@ -1,3 +1,11 @@
+import { ArrowDownIcon, BugAntIcon } from "@heroicons/vue/24/outline";
+import {
+  FireIcon,
+  CheckIcon,
+  StarIcon,
+  ClockIcon,
+} from "@heroicons/vue/24/outline";
+
 // types/task.ts
 export interface Task {
   id: string;
@@ -27,11 +35,13 @@ export const TASK_CATEGORIES = [
 ] as const;
 
 export const TASK_LABELS = [
-  "Important",
-  "Urgent",
-  "In Progress",
-  "Blocked",
-  "Low Priority",
+  { name: "Urgent", icon: FireIcon },
+  { name: "Completed", icon: CheckIcon },
+  { name: "Important", icon: StarIcon },
+  { name: "In Progress", icon: ClockIcon },
+  { name: "Pending", icon: ClockIcon },
+  { name: "Blocked", icon: BugAntIcon },
+  { name: "Low Priority", icon: ArrowDownIcon },
 ] as const;
 
 export type TaskCategory = (typeof TASK_CATEGORIES)[number];

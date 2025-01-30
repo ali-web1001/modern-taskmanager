@@ -8,7 +8,7 @@ import TaskItem from "../components/TaskItem.vue";
 import TaskInput from "../components/TaskInput.vue";
 import TaskFilters from "../components/TaskFilters.vue";
 import TaskCalendar from "../components/TaskCalendar.vue";
-import { CalendarIcon } from "@heroicons/vue/24/outline";
+import { CalendarIcon, MinusCircleIcon, PlusCircleIcon } from "@heroicons/vue/24/outline";
 import UserMenu from "../components/UserMenu.vue";
 import { useToast } from "vue-toastification";
 
@@ -16,6 +16,8 @@ const router = useRouter();
 const taskStore = useTaskStore();
 const authStore = useAuthStore();
 const showCalendar = ref(false);
+const showTaskForm = ref(true);
+
 const selectedTaskId = ref<string | null>(null);
 const toast = useToast();
 
@@ -132,6 +134,10 @@ const toggleCalendar = () => {
   showCalendar.value = !showCalendar.value;
 };
 
+const toggleTaskForm = () => {
+  showTaskForm.value = !showTaskForm.value;
+};
+
 const handleTaskSelect = (taskId: string) => {
   selectedTaskId.value = taskId;
   nextTick(() => {
@@ -189,12 +195,16 @@ watch(
 watch(
   () => filters.value,
   (newVal, oldVal) => {
-    // Show deleted filter
-    if (newVal.showDeleted !== oldVal.showDeleted) {
-      toast.info(
-        newVal.showDeleted ? "Showing deleted tasks" : "Hiding deleted tasks"
-      );
+    // Show deleted filter - only show toast when filter is turned ON
+    if (newVal.showDeleted !== oldVal.showDeleted && newVal.showDeleted) {
+      toast.info("Showing deleted tasks");
     }
+    // Show deleted filter
+    // if (newVal.showDeleted !== oldVal.showDeleted) {
+    //   toast.info(
+    //     newVal.showDeleted ? "Showing deleted tasks" : ""
+    //   );
+    // }
 
     // Category filter
     if (newVal.selectedCategory !== oldVal.selectedCategory) {
@@ -234,7 +244,7 @@ watch(
 
 <template>
   <div class="min-h-screen bg-purple-50 py-6 px-4 sm:px-6">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-5xl mx-auto">
       <div class="mb-6 flex flex-wrap gap-4 items-center justify-between">
         <div class="flex items-center gap-6">
           <div>
@@ -262,37 +272,35 @@ watch(
       <div class="mb-3">
         <div class="flex items-center gap-2" v-if="authStore.isAuthenticated">
           <TaskFilters v-model="filters" />
-          <button
-            @click="toggleCalendar"
-            class="btn-secondary flex items-center gap-2"
-          >
+
+          <button @click="toggleCalendar"
+            class="px-3 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 border border-gray-400 flex items-center gap-2">
             <CalendarIcon class="w-5 h-5" />
             {{ showCalendar ? "Hide Calendar" : "Show Calendar" }}
           </button>
+
+          <button @click="toggleTaskForm"
+            class="px-3 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 border border-gray-400 flex items-center gap-2">
+            <component :is="showTaskForm ? MinusCircleIcon : PlusCircleIcon" class="w-5 h-5" />
+            {{ showTaskForm ? "Hide Form" : "Show Form" }}
+          </button>
+
         </div>
       </div>
 
       <template v-if="authStore.isAuthenticated">
         <!-- Calendar (Collapsible) -->
-        <Transition
-          enter-active-class="transition-all duration-300 ease-out"
-          enter-from-class="opacity-0 transform -translate-y-4"
-          enter-to-class="opacity-100 transform translate-y-0"
+        <Transition enter-active-class="transition-all duration-300 ease-out"
+          enter-from-class="opacity-0 transform -translate-y-4" enter-to-class="opacity-100 transform translate-y-0"
           leave-active-class="transition-all duration-300 ease-in"
-          leave-from-class="opacity-100 transform translate-y-0"
-          leave-to-class="opacity-0 transform -translate-y-4"
-        >
+          leave-from-class="opacity-100 transform translate-y-0" leave-to-class="opacity-0 transform -translate-y-4">
+
           <div v-if="showCalendar" class="mb-6">
-            <TaskCalendar
-              :tasks="taskStore.tasks"
-              @select:task="handleTaskSelect"
-            />
+            <TaskCalendar :tasks="taskStore.tasks" @select:task="handleTaskSelect" />
 
             <div v-if="selectedTaskId" class="mt-2 flex justify-end">
-              <button
-                @click="clearTaskSelection"
-                class="text-sm text-indigo-900 hover:text-indigo-700 bg-indigo-200 rounded-lg p-2"
-              >
+              <button @click="clearTaskSelection"
+                class="text-sm text-emerald-600 hover:text-gray-50 bg-emerald-100 hover:bg-emerald-400 border border-emerald-500  hover:border-emerald-50 rounded-lg p-2">
                 Show All
               </button>
             </div>
@@ -302,36 +310,23 @@ watch(
         <!-- Main Content -->
         <div class="space-y-4">
           <!-- Add Task Form -->
-          <div
-            class="bg-white rounded-xl shadow-md border border-indigo-300 p-4"
-          >
+          <div v-if="showTaskForm" class="bg-white rounded-xl shadow-md border border-indigo-300 p-4">
             <TaskInput @add:task="addTask" />
           </div>
 
           <!-- Task List -->
           <div v-if="taskStore.loading" class="text-center py-8">
-            <div
-              class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"
-            ></div>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
           </div>
 
           <TransitionGroup v-else name="slide-fade" tag="div" class="space-y-3">
-            <TaskItem
-              v-for="task in filteredTasks"
-              :key="task.id"
-              :task="task"
-              :id="`task-${task.id}`"
-              @update:task="updateTask"
-              @delete:task="deleteTask"
-              @restore:task="restoreTask"
-              @permanent:delete="permanentlyDeleteTask"
-            />
+            <TaskItem v-for="task in filteredTasks" :key="task.id" :task="task" :id="`task-${task.id}`"
+              @update:task="updateTask" @delete:task="deleteTask" @restore:task="restoreTask"
+              @permanent:delete="permanentlyDeleteTask" />
           </TransitionGroup>
 
-          <p
-            v-if="filteredTasks.length === 0 && !taskStore.loading"
-            class="text-center text-gray-100 mt-8 bg-indigo-600 p-4 rounded-lg"
-          >
+          <p v-if="filteredTasks.length === 0 && !taskStore.loading"
+            class="text-center text-gray-100 mt-8 bg-indigo-600 p-4 rounded-lg">
             No tasks found. Try adjusting your filters or add a new task!
           </p>
           <!-- Sidebar (Right) -->

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { PlusIcon, TagIcon } from "@heroicons/vue/24/outline";
 import { TASK_CATEGORIES, TASK_LABELS } from "../types/task";
 import { isBefore, startOfDay, startOfToday } from "date-fns";
@@ -26,27 +26,48 @@ const error = ref("");
 const minDate = computed(() => startOfToday());
 const dueDate = ref<Date>();
 
-// Close datepicker when clicking outside
-// const datePickerRef = ref(null);
-// const handleClickOutside = (event: MouseEvent) => {
-//   if (
-//     datePickerRef.value &&
-//     !(datePickerRef.value as HTMLElement).contains(event.target as HTMLElement)
-//   ) {
-//     showDatePicker.value = false;
-//   }
-// };
+const categoryError = ref("");
+const dueDateError = ref("");
 
-// Add click outside listener
-// if (typeof window !== "undefined") {
-//   window.addEventListener("click", handleClickOutside);
-// }
+// Combined watch for all form fields
+watch(
+  [newTask, selectedCategory, dueDate],
+  ([newTaskValue, categoryValue, dateValue]) => {
+    // Clear task error if task has value
+    if (newTaskValue.trim()) {
+      error.value = "";
+    }
+    // Clear category error if category is selected
+    if (categoryValue) {
+      categoryError.value = "";
+    }
+    // Clear date error if date is selected
+    if (dateValue) {
+      dueDateError.value = "";
+    }
+  }
+);
 
 const addTask = () => {
   error.value = "";
+  categoryError.value = "";
+  dueDateError.value = "";
+
   if (!newTask.value.trim()) {
     error.value = "Please enter a task title";
     return;
+  }
+
+  if (!selectedCategory.value) {
+    categoryError.value = "Please select a category";
+  }
+
+  if (!dueDate.value) {
+    dueDateError.value = "Please select a due date";
+  }
+
+  if (error.value || categoryError.value || dueDateError.value) {
+    return; // Stop execution if there are errors
   }
 
   emit(
@@ -141,13 +162,13 @@ const handleDateSelect = (date: Date | null) => {
   <form @submit.prevent="addTask" class="space-y-4">
     <div class="flex flex-col sm:flex-row gap-3">
       <div class="flex-1">
-        <textarea
-          v-model="newTask"
-          type="text"
-          placeholder="Add a new task..."
-          class="input-primary w-full flex-1 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
-          :class="{ 'border-red-300 focus:ring-red-200': error }"
-        />
+        <label for="category" class="block text-gray-700 font-medium mb-1">Add Task <span
+            class="text-red-500">*</span></label>
+        <textarea v-model="newTask" type="text" placeholder="Add a new task..."
+          class="input-primary w-full flex-1 transition-all duration-100 rounded-md outline-none" :class="{
+            'border border-red-600 ring-1 ring-red-300': error,
+            'border border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500': !error
+          }" />
         <p v-if="error" class="mt-1 text-sm text-red-600">{{ error }}</p>
       </div>
     </div>
@@ -155,165 +176,79 @@ const handleDateSelect = (date: Date | null) => {
     <!-- Category  -->
     <div class="flex flex-wrap gap-4">
       <div class="flex-1 min-w-[200px]">
-        <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Select Category</label
-        >
+        <label class="block text-sm font-medium text-gray-700 mb-1">Select Category <span
+            class="text-red-500">*</span></label>
 
         <div class="relative">
-          <select
-            v-model="selectedCategory"
-            class="input-primary w-full appearance-none focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
-          >
+          <select v-model="selectedCategory"
+            class="input-primary border border-gray-400  w-full appearance-none focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all duration-200 outline-none">
+
             <option value="Select Category" disabled selected>
               Select Category
             </option>
-            <option
-              v-for="category in TASK_CATEGORIES"
-              :key="category"
-              :value="category"
-            >
+
+            <option v-for="category in TASK_CATEGORIES" :key="category" :value="category" :class="{
+              'border border-red-500 ring-1 ring-red-200 focus:ring-red-500': categoryError,
+              'border border-gray-300 focus:border-indigo-500 focus:ring-indigo-500': !categoryError
+            }">
               {{ category }}
             </option>
+
           </select>
 
+          <p v-if="categoryError" class="mt-2 text-sm text-red-600">
+            {{ categoryError }}
+          </p>
+
           <!-- Clear Button -->
-          <button
-            v-if="selectedCategory"
-            type="button"
-            @click="selectedCategory = ''"
-            class="absolute inset-y-0 right-8 flex items-center justify-center text-gray-400 hover:text-indigo-600 transition-all duration-200 rounded-full"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
+          <button v-if="selectedCategory" type="button" @click="selectedCategory = ''"
+            class="absolute inset-y-0 right-8 flex items-center justify-center text-gray-400 hover:text-indigo-600 transition-all duration-200 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clip-rule="evenodd"
-              />
+                clip-rule="evenodd" />
             </svg>
           </button>
 
-          <div
-            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
-          >
-            <svg
-              class="fill-current h-4 w-4"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-            >
-              <path
-                d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
-              />
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
             </svg>
           </div>
         </div>
       </div>
 
-      <!-- Due Date -->
-      <!-- <div class="flex-1 min-w-[200px] relative">
-      <label class="block text-sm font-medium text-gray-700 mb-1"
-        >Due Date</label
-      >
-      <div class="relative" ref="datePickerRef">
-        <button
-          type="button"
-          @click="toggleDatePicker"
-          class="input-primary w-full text-left flex items-center justify-between"
-        >
-          <span :class="{ 'text-gray-400': !dueDate }">
-            {{ dueDate ? formatDate(dueDate) : "Select due date" }}
-          </span>
-          <CalendarIcon class="w-5 h-5 text-gray-400" />
-        </button>
-
-        <Transition
-          enter-active-class="transition ease-out duration-200"
-          enter-from-class="opacity-0 translate-y-1"
-          enter-to-class="opacity-100 translate-y-0"
-          leave-active-class="transition ease-in duration-150"
-          leave-from-class="opacity-100 translate-y-0"
-          leave-to-class="opacity-0 translate-y-1"
-        >
-          <div
-            v-if="showDatePicker"
-            class="absolute top-full left-0 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 z-50"
-            @click.stop
-          >
-            <v-calendar
-              :model-value="dueDate"
-              @dayclick="handleDateSelect"
-              class="rounded-lg"
-              :min-date="minDate"
-              :attributes="calendarAttributes"
-              is-expanded
-              trim-weeks
-              disable-page-swipe
-              :masks="{
-                input: 'MMM D, YYYY',
-                title: 'MMMM YYYY',
-              }"
-              :can-move-prev="false"
-            />
-          </div>
-        </Transition>
-      </div>
-    </div> -->
-
-      <!-- <div class="relative">
-      <input
-        type="date"
-        class="input-primary w-full focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
-        :min="format(minDate, 'yyyy-MM-dd')"
-        @input="handleDateInput"
-      />
-    </div> -->
-
       <div class="flex-1 min-w-[200px] relative">
-        <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Due Date</label
-        >
-        <VueDatePicker
-          v-model="dueDate"
-          :min-date="minDate"
-          :is-required="true"
-          :action-row="{ showNow: true }"
-          now-button-label="Current"
-          arrow-navigation
-          @change="handleDateSelect"
-          format="MMM d, yyyy"
-          class="border border-gray-300 w-full rounded-md"
-        />
+        <label class="block text-sm font-medium text-gray-700 mb-1"> Due Date <span
+            class="text-red-500">*</span></label>
+
+        <VueDatePicker v-model="dueDate" :min-date="minDate" :is-required="true" :action-row="{ showNow: true }"
+          now-button-label="Current" arrow-navigation @change="handleDateSelect" format="MMM d, yyyy"
+          class="border border-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all duration-200 w-full rounded-md outline-none"
+          :class="{ 'border-red-400 focus:ring-red-200': dueDateError }" />
+
+        <p v-if="dueDateError" class="mt-1 text-sm text-red-600">
+          {{ dueDateError }}
+        </p>
+
       </div>
     </div>
 
     <div>
-      <button
-        type="button"
-        @click="showLabels = !showLabels"
-        class="btn-secondary focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all duration-200"
-      >
+      <button type="button" @click="showLabels = !showLabels"
+        class="flex items-center border border-gray-400 px-3 py-2 rounded-lg  focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all duration-200">
         <TagIcon class="w-5 h-5 mr-1.5" />
         {{ showLabels ? "Hide Labels" : "Show Labels" }}
       </button>
 
       <div v-if="showLabels" class="mt-2 flex flex-wrap gap-2">
-        <button
-          v-for="label in TASK_LABELS"
-          :key="label"
-          type="button"
-          @click="toggleLabel(label)"
-          class="px-3 py-1 rounded-full text-sm"
-          :class="
-            selectedLabels.includes(label)
-              ? 'bg-indigo-200 text-indigo-700 border-indigo-200'
-              : 'bg-gray-100 text-gray-700 border-gray-200'
-          "
-        >
-          {{ label }}
+        <button v-for="label in TASK_LABELS" :key="label.name" type="button" @click="toggleLabel(label.name)"
+          class="px-3 py-1 flex items-center gap-2 rounded-full text-sm" :class="selectedLabels.includes(label.name)
+            ? 'bg-indigo-100 text-indigo-700 border border-indigo-300'
+            : 'bg-gray-100 text-gray-700 border border-gray-400'
+            ">
+          <component :is="label.icon" class="w-4 h-4" />
+          {{ label.name }}
         </button>
       </div>
     </div>
@@ -342,16 +277,19 @@ const handleDateSelect = (date: Date | null) => {
 }
 
 :deep(.vc-day.is-selected) {
-  background-color: rgb(99 102 241); /* Indigo color for selected date */
+  background-color: rgb(99 102 241);
+  /* Indigo color for selected date */
   color: white;
 }
 
 :deep(.vc-day-content) {
-  border-radius: 9999px; /* Full rounded */
+  border-radius: 9999px;
+  /* Full rounded */
   transition: all 0.2s ease;
 }
 
 :deep(.vc-day:hover .vc-day-content) {
-  background-color: rgba(99, 102, 241, 0.1); /* Light indigo hover effect */
+  background-color: rgba(99, 102, 241, 0.1);
+  /* Light indigo hover effect */
 }
 </style>
