@@ -10,12 +10,17 @@ import {
   CalendarIcon,
   ArrowUturnLeftIcon,
   CheckIcon,
+  EyeIcon,
 } from "@heroicons/vue/24/outline";
 
 // Define props with Task type
 const props = defineProps<{
   task: Task;
 }>();
+
+const viewTask = () => {
+  // emit("view:task", props.task.id);  // You can define this custom event to show the task details in another way
+};
 
 // Explicitly type the emits with custom event types
 const emit = defineEmits<{
@@ -76,7 +81,7 @@ const startEditing = () => {
     ? format(props.task.dueDate, "yyyy-MM-dd") // Use date-fns format
     : "";
 
-  editedCategory.value = props.task.category;
+  editedCategory.value = props.task.category || 'General';
   editedLabels.value = [...(props.task.labels || [])];
 };
 
@@ -144,7 +149,7 @@ const getDueStatus = computed(() => {
   if (props.task.completed) {
     return {
       text: "Completed",
-      class: "bg-green-100 text-green-800",
+      class: "bg-green-200 text-green-800",
     };
   } else if (isPast(date) && !isToday(date)) {
     return {
@@ -154,7 +159,7 @@ const getDueStatus = computed(() => {
   } else if (isToday(date)) {
     return {
       text: "Due today",
-      class: "bg-yellow-100 text-yellow-800",
+      class: "bg-yellow-200 text-yellow-900",
     };
   } else {
     return {
@@ -169,31 +174,48 @@ const shouldShowDueDate = computed(() => {
   if (!props.task.dueDate) return false;
   return !isPast(props.task.dueDate) || isToday(props.task.dueDate);
 });
+
+const displayCategory = computed(() => {
+  // If category exists and is not just whitespace, return it
+  // Otherwise, return 'General'
+  return props.task.category && props.task.category.trim()
+    ? props.task.category
+    : 'General';
+});
 </script>
 
 <template>
   <div class="task-card group p-4 border rounded-lg shadow-sm bg-white" :class="{
-    'opacity-75': task.completed,
+    'opacity-70': task.completed,
     'bg-gray-50': task.deletedAt,
   }">
+
     <div class="flex items-center justify-between gap-4">
       <div class="flex items-center flex-1 min-w-0">
+        <!-- the !!task.deletedAt is used to convert the value of task.deletedAt to a boolean (true or false).
+        The disabled attribute is set to true if the task is deleted (i.e., task.deletedAt is not null or undefined), and the button is disabled.
+        If the task is not deleted, the button will be enabled. -->
+
         <button v-if="!isEditing" @click="toggleComplete"
-          class="p-1.5 rounded-full hover:bg-indigo-50 transition-colors shrink-0" :disabled="!!task.deletedAt">
+          class="p-1.5 rounded-full hover:bg-indigo-50 transition-colors shrink-0" :disabled="!!task.deletedAt"
+          :class="{ 'opacity-50 cursor-not-allowed': !!task.deletedAt }">
           <CheckCircleIcon class="w-7 h-7 transition-colors"
             :class="task.completed ? 'text-green-500' : 'text-gray-400'" />
         </button>
 
-        <div v-if="!isEditing" class="ml-3 flex-1 min-w-0">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+        <div v-if="!isEditing" class="ml-2 flex-1 min-w-0">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <span class="text-gray-700 text-lg break-words" :class="{ 'line-through text-gray-400': task.completed }">
               {{ task.title }}
             </span>
 
-            <span v-if="task.category"
-              class="px-2 py-0.5 rounded-lg bg-gray-200 text-gray-600 text-sm whitespace-nowrap">
-              {{ task.category }}
+            <span class="px-2 py-0.5 rounded-lg bg-slate-200 text-gray-700 text-sm whitespace-nowrap">
+              {{ displayCategory }}
             </span>
+            <!-- <span v-if="task.category" 
+              class="px-2 py-0.5 rounded-lg bg-slate-200 text-gray-700 text-sm whitespace-nowrap">
+              {{ task.category }}
+            </span> -->
           </div>
 
           <div class="flex flex-col sm:flex-row flex-wrap items-start gap-3 mt-2">
@@ -233,7 +255,8 @@ const shouldShowDueDate = computed(() => {
             <!-- Title Input -->
             <div class="w-full">
               <label for="category" class="block text-gray-700 font-medium mb-1">Edit Task<span
-                  class="text-red-500">*</span></label>
+                  class="text-red-500">*</span>
+              </label>
               <textarea v-model="editedTitle" @keyup.enter="saveEdit" @keyup.esc="cancelEdit"
                 class="w-full p-2.5 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 type="text" placeholder="Edit Task..." :class="{ 'border-red-500': errors.title }"></textarea>
@@ -255,9 +278,6 @@ const shouldShowDueDate = computed(() => {
                       'border-red-500 focus:ring-red-200': errors.dueDate,
                       'border-indigo-300': !errors.dueDate
                     }" required />
-
-                  <!-- <CalendarIcon
-                    class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" /> -->
                 </div>
 
                 <p v-if="errors.dueDate" class="mt-1 text-red-500 text-sm">
@@ -274,7 +294,6 @@ const shouldShowDueDate = computed(() => {
                   :class="{ 'border-red-500': errors.category }" />
                 <p v-if="errors.category" class="text-red-500 text-sm mt-1">{{ errors.category }}</p>
               </div>
-
             </div>
 
             <!-- Labels Section -->
@@ -291,7 +310,6 @@ const shouldShowDueDate = computed(() => {
                   </button>
                 </div>
               </div>
-
 
               <div class="flex flex-wrap gap-2">
                 <span v-for="label in editedLabels" :key="label"
@@ -315,12 +333,6 @@ const shouldShowDueDate = computed(() => {
                 <XMarkIcon class="w-5 h-5" />
               </button>
 
-              <!-- <button
-                @click="cancelEdit"
-                class="w-full sm:w-auto px-5 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button> -->
             </div>
           </div>
         </div>
@@ -342,6 +354,13 @@ const shouldShowDueDate = computed(() => {
           </template>
 
           <template v-else>
+            <template v-if="!isEditing">
+              <button @click="viewTask"
+                class="p-2 hover:bg-blue-50 rounded-lg border border-gray-400 hover:border-blue-200 text-gray-600 hover:text-blue-600">
+                <EyeIcon class="w-5 h-5" />
+              </button>
+            </template>
+
             <button @click="startEditing"
               class="p-2 hover:bg-indigo-50 rounded-lg border border-gray-400 hover:border-indigo-200 text-gray-600 hover:text-indigo-600">
               <PencilIcon class="w-5 h-5" />

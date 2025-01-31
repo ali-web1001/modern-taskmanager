@@ -87,7 +87,6 @@ export const useAuthStore = defineStore("auth", {
       try {
         // First clear local state
         this.user = null;
-
         // Then attempt to clear server session
         const { error } = await supabase.auth.signOut();
         if (error) {
@@ -98,14 +97,23 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
+    // In your auth store
     async checkAuth() {
       try {
+        this.loading = true;
         const {
           data: { session },
+          error,
         } = await supabase.auth.getSession();
+
+        if (error) throw error;
+
         this.user = session?.user ?? null;
+        return session;
       } catch (error) {
+        console.error("Auth check failed:", error);
         this.user = null;
+        throw error;
       } finally {
         this.loading = false;
       }

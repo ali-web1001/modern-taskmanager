@@ -1,17 +1,17 @@
 import {
   createRouter,
   createWebHistory,
-  // NavigationGuardNext,
-  // RouteLocationNormalized,
+  type RouteLocationNormalized,
 } from "vue-router";
-
 import { useAuthStore } from "../stores/auth";
 import TaskManager from "../views/TaskManager.vue";
 import Login from "../views/Login.vue";
 import Register from "../views/Register.vue";
-import Profile from "../views/Profile.vue";
+// import Profile from "../views/Profile.vue";
+import { nextTick } from "vue";
 import AuthCallBack from "../views/AuthCallBack.vue";
 
+// Create the router instance
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -19,75 +19,67 @@ const router = createRouter({
       path: "/",
       name: "tasks",
       component: TaskManager,
-      meta: { requiresAuth: true }, // Add authentication meta field
+      meta: { requiresAuth: true },
     },
     {
       path: "/login",
       name: "login",
       component: Login,
+      meta: { requiresGuest: true }, // Add this meta field
     },
     {
       path: "/register",
       name: "register",
       component: Register,
+      meta: { requiresGuest: true }, // Add this meta field
     },
     {
       path: "/profile",
       name: "profile",
-      component: Profile,
-      meta: {
-        requiresAuth: true,
-      },
+      component: () => import("../views/Profile.vue"),
+      meta: { requiresAuth: true },
     },
     {
       path: "/auth/callback",
       name: "auth-callback",
-      component: () => AuthCallBack,
+      component: AuthCallBack, // Remove the function wrapper
+    },
+    // Add a catch-all route for Netlify
+    {
+      path: "/:pathMatch(.*)*",
+      redirect: "/",
     },
   ],
 });
 
-// Navigation guard
-router.beforeEach(async (to, _from, next) => {
-  const authStore = useAuthStore();
+// Navigation guard with improved auth handling
+router.beforeEach(
+  async (to: RouteLocationNormalized, _from: RouteLocationNormalized, next) => {
+    const authStore = useAuthStore();
 
-  // Wait for initial auth check
-  if (authStore.loading) {
-    await authStore.checkAuth();
-  }
+    // Wait for initial auth check if necessary
+    if (authStore.loading) {
+      await authStore.checkAuth();
+      await nextTick();
+    }
 
-  // Check if route requires auth
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next("/login");
-  } else {
+    // Get the authentication status
+    const isAuthenticated = authStore.isAuthenticated;
+
+    // Handle routes requiring authentication
+    if (to.meta.requiresAuth && !isAuthenticated) {
+      next({ name: "login", query: { redirect: to.fullPath } });
+      return;
+    }
+
+    // Handle routes requiring guest access (login/register)
+    if (to.meta.requiresGuest && isAuthenticated) {
+      next({ name: "tasks" });
+      return;
+    }
+
     next();
   }
-});
-
-// Navigation guard with proper parameter usage
-// router.beforeEach(
-//   async (
-//     to: RouteLocationNormalized,
-//     _from: RouteLocationNormalized,
-//     next: NavigationGuardNext
-//   ) => {
-//     const authStore = useAuthStore();
-//
-//     // Wait for initial auth check
-//     if (authStore.loading) {
-//       await authStore.checkAuth();
-//     }
-//
-//     // Check if the route requires authentication
-//     const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
-//
-//     if (requiresAuth && !authStore.isAuthenticated) {
-//       // Redirect to login if not authenticated
-//       next("/login");
-//     } else {
-//       next();
-//     }
-//   }
-// );
+);
 
 export default router;

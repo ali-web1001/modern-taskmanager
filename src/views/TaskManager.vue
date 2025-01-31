@@ -12,6 +12,7 @@ import { useToast } from "vue-toastification";
 import BaseTooltip from "../components/BaseTooltip.vue";
 import LoadingComponent from "../components/LoadingComponent.vue";
 import Header from "../components/Header.vue";
+import Welcome from "./Welcome.vue";
 // import Welcome from "./Welcome.vue";
 
 const taskStore = useTaskStore();
@@ -160,37 +161,11 @@ const clearTaskSelection = () => {
   // filters.value.endDate = undefined;
 };
 
-// Watch for filter changes to clear task selection
-watch(
-  () => filters.value.showDeleted,
-  () => {
-    clearTaskSelection();
-  }
-);
+// However, if the user changes a filter (e.g., date, category, labels, deleted status, etc.), the selected task is cleared automatically to ensure that the user sees the relevant filtered results.
+watch(filters, () => {
+  clearTaskSelection();
+}, { deep: true });
 
-watch(
-  () => filters.value.selectedCategory,
-  () => {
-    clearTaskSelection();
-  }
-);
-
-watch(
-  () => filters.value.selectedLabels,
-  () => {
-    clearTaskSelection();
-  },
-  { deep: true }
-);
-
-// Modify the date filter watcher to not clear selection
-watch(
-  () => [filters.value.startDate, filters.value.endDate],
-  () => {
-    // Only clear calendar selection, keep date filters
-    clearTaskSelection();
-  }
-);
 
 watch(
   () => filters.value,
@@ -243,18 +218,20 @@ watch(
 </script>
 
 <template>
-  <!-- Show loading component while page is loading -->
-  <LoadingComponent v-if="pageLoading" />
-  <div class="min-h-screen bg-purple-50 py-9 px-4 sm:px-6">
-    <div class="max-w-5xl mx-auto">
+  <div class="min-h-screen bg-emerald-50 py-9 px-4 sm:px-6">
+
+    <LoadingComponent v-if="pageLoading" />
+
+    <div v-else class="max-w-4xl mx-auto">
+
       <!-- header -->
       <Header />
       <!-- header end -->
 
-      <div class="mb-3">
-        <div class="flex items-center gap-2" v-if="authStore.isAuthenticated">
+      <template v-if="authStore.isAuthenticated">
+        <div class="flex items-center gap-2">
+          <!-- task filter -->
           <TaskFilters v-model="filters" />
-
           <!-- Calendar Toggle Button -->
           <BaseTooltip text="Toggle calendar view">
             <button @click="toggleCalendar" class="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 
@@ -276,28 +253,25 @@ watch(
               </span>
             </button>
           </BaseTooltip>
-
         </div>
-      </div>
 
-      <template v-if="authStore.isAuthenticated">
-        <!-- Calendar (Collapsible) -->
-        <Transition enter-active-class="transition-all duration-300 ease-out"
-          enter-from-class="opacity-0 transform -translate-y-4" enter-to-class="opacity-100 transform translate-y-0"
-          leave-active-class="transition-all duration-300 ease-in"
-          leave-from-class="opacity-100 transform translate-y-0" leave-to-class="opacity-0 transform -translate-y-4">
-
-          <div v-if="showCalendar" class="mb-6">
-            <TaskCalendar :tasks="taskStore.tasks" @select:task="handleTaskSelect" />
-
-            <div v-if="selectedTaskId" class="mt-2 flex justify-end">
-              <button @click="clearTaskSelection"
-                class="text-sm text-emerald-600 hover:text-gray-50 bg-emerald-100 hover:bg-emerald-400 border border-emerald-500  hover:border-emerald-50 rounded-lg p-2">
-                Show All
-              </button>
+        <div class="mt-3">
+          <!-- Calendar (Collapsible) -->
+          <Transition enter-active-class="transition-all duration-300 ease-out"
+            enter-from-class="opacity-0 transform -translate-y-4" enter-to-class="opacity-100 transform translate-y-0"
+            leave-active-class="transition-all duration-300 ease-in"
+            leave-from-class="opacity-100 transform translate-y-0" leave-to-class="opacity-0 transform -translate-y-4">
+            <div v-if="showCalendar" class="mb-6">
+              <TaskCalendar :tasks="taskStore.tasks" @select:task="handleTaskSelect" />
+              <div v-if="selectedTaskId" class="mt-2 flex justify-end">
+                <button @click="clearTaskSelection"
+                  class="text-sm text-emerald-600 hover:text-gray-50 bg-emerald-100 hover:bg-emerald-400 border border-emerald-500  hover:border-emerald-50 rounded-lg p-2">
+                  Show All
+                </button>
+              </div>
             </div>
-          </div>
-        </Transition>
+          </Transition>
+        </div>
 
         <!-- Main Content -->
         <div class="space-y-4">
@@ -305,28 +279,24 @@ watch(
           <div v-if="showTaskForm" class="bg-white rounded-xl shadow-md border border-indigo-300 p-4">
             <TaskInput @add:task="addTask" />
           </div>
-
           <!-- Task List -->
           <div v-if="taskStore.loading" class="text-center py-8">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
           </div>
-
           <TransitionGroup v-else name="slide-fade" tag="div" class="space-y-3">
             <TaskItem v-for="task in filteredTasks" :key="task.id" :task="task" :id="`task-${task.id}`"
               @update:task="updateTask" @delete:task="deleteTask" @restore:task="restoreTask"
               @permanent:delete="permanentlyDeleteTask" />
           </TransitionGroup>
-
           <p v-if="filteredTasks.length === 0 && !taskStore.loading"
             class="text-center text-gray-100 mt-8 bg-indigo-600 p-4 rounded-lg">
             No tasks found. Try adjusting your filters or add a new task!
           </p>
-
         </div>
       </template>
 
       <!-- Welcome Screen -->
-      <!-- <Welcome v-else /> -->
+      <Welcome v-else />
     </div>
   </div>
 </template>
