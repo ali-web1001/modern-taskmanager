@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch } from "vue";
-import { useRouter } from "vue-router";
 import { useTaskStore } from "../stores/tasks";
 import { useAuthStore } from "../stores/auth";
 import { Task, TaskFilter } from "../types/task";
@@ -9,15 +8,18 @@ import TaskInput from "../components/TaskInput.vue";
 import TaskFilters from "../components/TaskFilters.vue";
 import TaskCalendar from "../components/TaskCalendar.vue";
 import { CalendarIcon, MinusCircleIcon, PlusCircleIcon } from "@heroicons/vue/24/outline";
-import UserMenu from "../components/UserMenu.vue";
 import { useToast } from "vue-toastification";
+import BaseTooltip from "../components/BaseTooltip.vue";
+import LoadingComponent from "../components/LoadingComponent.vue";
+import Header from "../components/Header.vue";
+import Welcome from "./Welcome.vue";
 
-const router = useRouter();
 const taskStore = useTaskStore();
 const authStore = useAuthStore();
 const showCalendar = ref(false);
 const showTaskForm = ref(true);
 
+const pageLoading = ref(true); // New ref for page loading state
 const selectedTaskId = ref<string | null>(null);
 const toast = useToast();
 
@@ -30,8 +32,14 @@ const filters = ref<TaskFilter>({
 });
 
 onMounted(async () => {
-  if (authStore.isAuthenticated) {
-    await taskStore.fetchTasks();
+  try {
+    if (authStore.isAuthenticated) {
+      // Simulate loading time for data fetching
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await taskStore.fetchTasks();
+    }
+  } finally {
+    pageLoading.value = false;
   }
 });
 
@@ -120,14 +128,6 @@ const permanentlyDeleteTask = async (id: string) => {
 // Add restore task method
 const restoreTask = async (id: string) => {
   await taskStore.restoreTask(id);
-};
-
-const navigateToLogin = () => {
-  router.push("/login");
-};
-
-const navigateToRegister = () => {
-  router.push("/register");
 };
 
 const toggleCalendar = () => {
@@ -243,47 +243,39 @@ watch(
 </script>
 
 <template>
-  <div class="min-h-screen bg-purple-50 py-6 px-4 sm:px-6">
+  <!-- Show loading component while page is loading -->
+  <LoadingComponent v-if="pageLoading" />
+  <div class="min-h-screen bg-purple-50 py-9 px-4 sm:px-6">
     <div class="max-w-5xl mx-auto">
-      <div class="mb-6 flex flex-wrap gap-4 items-center justify-between">
-        <div class="flex items-center gap-6">
-          <div>
-            <h1 class="text-2xl font-bold text-gray-900">Task Manager</h1>
-            <p class="text-gray-600 text-lg">Stay Organized and Productive</p>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-4">
-          <template v-if="authStore.isAuthenticated">
-            <UserMenu />
-          </template>
-
-          <template v-else>
-            <button @click="navigateToLogin" class="btn-primary">
-              Sign In
-            </button>
-            <button @click="navigateToRegister" class="btn-secondary">
-              Sign Up
-            </button>
-          </template>
-        </div>
-      </div>
+      <!-- header -->
+      <Header />
+      <!-- header end -->
 
       <div class="mb-3">
         <div class="flex items-center gap-2" v-if="authStore.isAuthenticated">
           <TaskFilters v-model="filters" />
 
-          <button @click="toggleCalendar"
-            class="px-3 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 border border-gray-400 flex items-center gap-2">
-            <CalendarIcon class="w-5 h-5" />
-            {{ showCalendar ? "Hide Calendar" : "Show Calendar" }}
-          </button>
+          <!-- Calendar Toggle Button -->
+          <BaseTooltip text="Toggle calendar view">
+            <button @click="toggleCalendar" class="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 
+                     border border-gray-400 flex items-center gap-2">
+              <CalendarIcon class="w-5 h-5" />
+              <span class="hidden sm:inline">
+                {{ showCalendar ? "Hide Calendar" : "Show Calendar" }}
+              </span>
+            </button>
+          </BaseTooltip>
 
-          <button @click="toggleTaskForm"
-            class="px-3 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 border border-gray-400 flex items-center gap-2">
-            <component :is="showTaskForm ? MinusCircleIcon : PlusCircleIcon" class="w-5 h-5" />
-            {{ showTaskForm ? "Hide Form" : "Show Form" }}
-          </button>
+          <!-- Task Form Toggle Button -->
+          <BaseTooltip text="Toggle task form">
+            <button @click="toggleTaskForm" class="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 
+                     border border-gray-400 flex items-center gap-2">
+              <component :is="showTaskForm ? MinusCircleIcon : PlusCircleIcon" class="w-5 h-5" />
+              <span class="hidden sm:inline">
+                {{ showTaskForm ? "Hide Form" : "Show Form" }}
+              </span>
+            </button>
+          </BaseTooltip>
 
         </div>
       </div>
@@ -329,30 +321,12 @@ watch(
             class="text-center text-gray-100 mt-8 bg-indigo-600 p-4 rounded-lg">
             No tasks found. Try adjusting your filters or add a new task!
           </p>
-          <!-- Sidebar (Right) -->
-          <!-- <div class="space-y-4"></div> -->
+
         </div>
       </template>
 
       <!-- Welcome Screen -->
-      <template v-else>
-        <div class="text-center py-12">
-          <h2 class="text-2xl font-semibold text-gray-900 mb-4">
-            Welcome to Task Manager
-          </h2>
-          <p class="text-gray-600 mb-8">
-            Please sign in or create an account to manage your tasks.
-          </p>
-          <div class="flex justify-center gap-4">
-            <button @click="navigateToLogin" class="btn-primary px-8">
-              Sign In
-            </button>
-            <button @click="navigateToRegister" class="btn-secondary px-8">
-              Sign Up
-            </button>
-          </div>
-        </div>
-      </template>
+      <Welcome />
     </div>
   </div>
 </template>

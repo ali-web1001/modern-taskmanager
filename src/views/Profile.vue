@@ -4,6 +4,8 @@ import { useAuthStore } from "../stores/auth";
 import { useRouter } from "vue-router";
 import { ArrowLeftIcon } from "@heroicons/vue/24/outline";
 import { useToast } from "vue-toastification";
+import LoadingComponent from "../components/LoadingComponent.vue";
+
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -14,18 +16,26 @@ const email = ref("");
 const avatar = ref("");
 const avatarFile = ref<File | null>(null);
 const loading = ref(false);
+const pageLoading = ref(true); // New ref for page loading state
 const success = ref(false);
 const error = ref("");
 
-onMounted(() => {
-  if (!authStore.isAuthenticated) {
-    router.push("/login");
-    return;
-  }
+onMounted(async () => {
+  try {
+    if (!authStore.isAuthenticated) {
+      router.push("/login");
+      return;
+    }
 
-  name.value = authStore.user?.user_metadata?.name || "";
-  email.value = authStore.user?.email || "";
-  avatar.value = authStore.user?.user_metadata?.avatar_url || "";
+    // Simulate loading time for data fetching
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    name.value = authStore.user?.user_metadata?.name || "";
+    email.value = authStore.user?.email || "";
+    avatar.value = authStore.user?.user_metadata?.avatar_url || "";
+  } finally {
+    pageLoading.value = false;
+  }
 });
 
 const handleAvatarChange = (event: Event) => {
@@ -71,14 +81,14 @@ const goBack = () => {
 };
 </script>
 <template>
+
   <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-2xl mx-auto">
+      <!-- Show loading component while page is loading -->
+      <LoadingComponent v-if="pageLoading" />
       <!-- BreadCrumb -->
       <div class="mb-6">
-        <button
-          @click="goBack"
-          class="flex items-center text-indigo-600 hover:text-indigo-600"
-        >
+        <button @click="goBack" class="flex items-center text-indigo-600 hover:text-indigo-600">
           <ArrowLeftIcon class="w-5 h-5 mr-2" />
           Back To Tasks
         </button>
@@ -89,31 +99,20 @@ const goBack = () => {
           <div class="text-center mb-8">
             <div class="mb-4 relative">
               <div
-                class="w-24 h-24 rounded-full bg-indigo-100 mx-auto flex items-center justify-center overflow-hidden group"
-              >
-                <img
-                  v-if="avatar"
-                  :src="avatar"
-                  :alt="name"
-                  class="w-24 h-24 object-cover"
-                />
+                class="w-24 h-24 rounded-full bg-indigo-100 mx-auto flex items-center justify-center overflow-hidden group">
+                <img v-if="avatar" :src="avatar" :alt="name" class="w-24 h-24 object-cover" />
                 <span v-else class="text-4xl text-indigo-600">
                   {{ name.charAt(0).toUpperCase() }}
                 </span>
 
                 <!-- Overlay for hover effect -->
                 <div
-                  class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                >
+                  class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                   <span class="text-white text-sm">Change Photo</span>
                 </div>
 
-                <input
-                  type="file"
-                  accept="image/*"
-                  class="absolute inset-0 opacity-0 cursor-pointer"
-                  @change="handleAvatarChange"
-                />
+                <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer"
+                  @change="handleAvatarChange" />
               </div>
             </div>
             <h2 class="text-2xl font-bold text-gray-900">Profile Settings</h2>
@@ -147,12 +146,8 @@ const goBack = () => {
                 Email
               </label>
 
-              <input
-                type="email"
-                v-model="email"
-                disabled
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500"
-              />
+              <input type="email" v-model="email" disabled
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500" />
               <p class="mt-1 text-sm text-gray-500">Email cannot be changed</p>
             </div>
 
@@ -160,40 +155,24 @@ const goBack = () => {
               <label class="block text-sm font-medium text-gray-700">
                 Full Name
               </label>
-              <input
-                type="text"
-                v-model="name"
-                required
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-              />
+              <input type="text" v-model="name" required
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
             </div>
 
             <div class="flex justify-between">
-              <button type="button" @click="goBack" class="btn-secondary">
+              <button type="button" @click="goBack" class="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-300 
+                     border border-gray-400 flex items-center gap-2">
                 Cancel
               </button>
 
-              <button type="submit" :disabled="loading" class="btn-primary">
-                <svg
-                  v-if="loading"
-                  class="animate-spin h-5 w-5 mr-2"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
+              <button type="submit" :disabled="loading" class="p-2 bg-indigo-500 text-gray-100 rounded-lg hover:bg-indigo-600 
+                     border border-gray-400 flex items-center gap-2">
+                <svg v-if="loading" class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none"
+                  viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                  </path>
                 </svg>
                 {{ loading ? "Saving..." : "Save Changes" }}
               </button>
