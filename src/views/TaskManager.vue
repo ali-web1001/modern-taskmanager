@@ -326,7 +326,7 @@ watch(
       </template>
 
       <!-- Welcome Screen -->
-      <Welcome />
+      <Welcome v-else />
     </div>
   </div>
 </template>

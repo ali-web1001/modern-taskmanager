@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { useAuthStore } from "../stores/auth";
+// import { useAuthStore } from "../stores/auth";
 
 const router = useRouter();
-const authStore = useAuthStore();
+// const authStore = useAuthStore();
 
 const navigateToLogin = () => {
     router.push("/login");
@@ -15,7 +15,7 @@ const navigateToRegister = () => {
 </script>
 
 <template>
-    <div v-if="!authStore.isAuthenticated" class="text-center py-12">
+    <div class="text-center py-12">
         <h2 class="text-2xl font-semibold text-gray-900 mb-4">
             Welcome to Task Manager
         </h2>

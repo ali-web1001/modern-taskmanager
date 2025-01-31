@@ -59,8 +59,9 @@ router.beforeEach(async (to, _from, next) => {
   // Force a reactivity update before navigating
   await nextTick();
 
+  // Check if route requires auth
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next({ path: "/", replace: true }); // Use replace to prevent back navigation
+    next("/login");
   } else {
     next();
   }
