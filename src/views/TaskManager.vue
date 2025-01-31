@@ -12,7 +12,7 @@ import { useToast } from "vue-toastification";
 import BaseTooltip from "../components/BaseTooltip.vue";
 import LoadingComponent from "../components/LoadingComponent.vue";
 import Header from "../components/Header.vue";
-import Welcome from "./Welcome.vue";
+// import Welcome from "./Welcome.vue";
 
 const taskStore = useTaskStore();
 const authStore = useAuthStore();
@@ -326,7 +326,7 @@ watch(
       </template>
 
       <!-- Welcome Screen -->
-      <Welcome v-else />
+      <!-- <Welcome v-else /> -->
     </div>
   </div>
 </template>

@@ -11,7 +11,6 @@ import Login from "../views/Login.vue";
 import Register from "../views/Register.vue";
 import Profile from "../views/Profile.vue";
 import AuthCallBack from "../views/AuthCallBack.vue";
-import { nextTick } from "vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -56,8 +55,6 @@ router.beforeEach(async (to, _from, next) => {
   if (authStore.loading) {
     await authStore.checkAuth();
   }
-  // Force a reactivity update before navigating
-  await nextTick();
 
   // Check if route requires auth
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {

@@ -22,7 +22,7 @@ const navigateToProfile = () => {
 const handleLogout = async () => {
   try {
     await authStore.logout();
-    router.push("/");
+    router.push("/login");
     toast.info('Logout Successfully!')
   } catch (error) {
     console.error("Logout error:", error);
