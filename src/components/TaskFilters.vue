@@ -58,10 +58,6 @@ onUnmounted(() => {
   window.removeEventListener("click", closeFilters);
 });
 
-// // Add click outside listener
-// if (typeof window !== "undefined") {
-//   window.addEventListener("click", closeFilters);
-// }
 </script>
 
 <template>

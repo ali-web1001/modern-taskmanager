@@ -47,20 +47,26 @@ if (typeof window !== "undefined") {
 <template>
   <div class="relative inline-block user-menu">
     <button class="flex items-center space-x-2 focus:outline-none" @click.stop="showMenu = !showMenu">
-      <div class="w-10 h-10 rounded-full bg-indigo-200 flex items-center justify-center">
+      <!-- Avatar section -->
+      <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-indigo-200 flex items-center justify-center">
         <img v-if="authStore.user?.user_metadata?.avatar_url" :src="authStore.user.user_metadata.avatar_url"
-          :alt="authStore.user.user_metadata.name" class="w-10 h-10 rounded-full" />
+          :alt="authStore.user.user_metadata.name" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full" />
 
-        <UserCircleIcon v-else class="w-6 h-6 text-indigo-500" />
+        <UserCircleIcon v-else class="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500" />
       </div>
 
-      <span class="text-gray-700">
+      <span
+        class="hidden sm:flex text-sm lg:text-base text-gray-700 max-w-[120px] sm:max-w-[150px] lg:max-w-[200px] truncate">
         {{ authStore.user?.user_metadata?.name || authStore.user?.email }}
       </span>
     </button>
 
+    <!-- Dropdown Menu - Responsive positioning -->
     <div v-if="showMenu"
-      class="absolute left-0 origin-top-right mt-2 w-52 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+      class="absolute right-[-2] sm:right-auto sm:left-0 origin-top-right mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+      :class="{
+        'transform -translate-x-[calc(100%-32px)] sm:translate-x-0': true
+      }">
       <div class="py-1">
         <button @click="navigateToProfile"
           class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">

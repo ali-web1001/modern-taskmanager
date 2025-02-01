@@ -13,14 +13,16 @@ import {
   EyeIcon,
 } from "@heroicons/vue/24/outline";
 
+import TaskDetailOverlay from './TaskDetailOverlay.vue';
+
 // Define props with Task type
 const props = defineProps<{
   task: Task;
 }>();
 
-const viewTask = () => {
-  // emit("view:task", props.task.id);  // You can define this custom event to show the task details in another way
-};
+// const viewTask = () => {
+//   // emit("view:task", props.task.id);  // You can define this custom event to show the task details in another way
+// };
 
 // Explicitly type the emits with custom event types
 const emit = defineEmits<{
@@ -35,6 +37,7 @@ const editedTitle = ref(props.task.title);
 const editedDueDate = ref(
   props.task.dueDate ? props.task.dueDate.toISOString().split("T")[0] : ""
 );
+const showDetails = ref(false);
 
 const editedCategory = ref<string | undefined>(props.task.category);
 const editedLabels = ref<string[]>(props.task.labels || []);
@@ -185,13 +188,19 @@ const displayCategory = computed(() => {
 </script>
 
 <template>
-  <div class="task-card group p-4 border rounded-lg shadow-sm bg-white" :class="{
-    'opacity-70': task.completed,
-    'bg-gray-50': task.deletedAt,
-  }">
+  <div class="task-card group p-4 border rounded-lg shadow-sm bg-white">
 
-    <div class="flex items-center justify-between gap-4">
+    <TaskDetailOverlay v-if="showDetails" :show="showDetails" :task="task" @close="showDetails = false"
+      @update:task="(updatedTask) => emit('update:task', updatedTask)" @delete:task="(id) => emit('delete:task', id)"
+      @restore:task="(id) => emit('restore:task', id)" @permanent:delete="(id) => emit('permanent:delete', id)"
+      @edit="startEditing" />
+
+    <div class="flex items-center justify-between gap-4" :class="{
+      'opacity-70': task.completed,
+      'bg-gray-50': task.deletedAt,
+    }">
       <div class="flex items-center flex-1 min-w-0">
+
         <!-- the !!task.deletedAt is used to convert the value of task.deletedAt to a boolean (true or false).
         The disabled attribute is set to true if the task is deleted (i.e., task.deletedAt is not null or undefined), and the button is disabled.
         If the task is not deleted, the button will be enabled. -->
@@ -212,6 +221,7 @@ const displayCategory = computed(() => {
             <span class="px-2 py-0.5 rounded-lg bg-slate-200 text-gray-700 text-sm whitespace-nowrap">
               {{ displayCategory }}
             </span>
+
             <!-- <span v-if="task.category" 
               class="px-2 py-0.5 rounded-lg bg-slate-200 text-gray-700 text-sm whitespace-nowrap">
               {{ task.category }}
@@ -342,6 +352,11 @@ const displayCategory = computed(() => {
       <div class="flex items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
         <template v-if="!isEditing">
           <template v-if="task.deletedAt">
+            <!-- Add to the template, in the actions div before the other buttons -->
+            <button @click="showDetails = true" class="btn-secondary p-2" title="View Details">
+              <EyeIcon class="w-6 h-6" />
+            </button>
+
             <button @click="restoreTask"
               class="p-2 hover:bg-green-50 rounded-lg border border-gray-400 hover:border-green-300 text-gray-600 hover:text-green-600">
               <ArrowUturnLeftIcon class="w-5 h-5" />
@@ -354,20 +369,31 @@ const displayCategory = computed(() => {
           </template>
 
           <template v-else>
+            <!-- Add at the end of the template, before the closing div -->
             <template v-if="!isEditing">
-              <button @click="viewTask"
+              <!-- Add to the template, in the actions div before the other buttons -->
+              <button @click="showDetails = true"
+                class="p-2.5 hover:bg-blue-50 rounded-lg border border-gray-400 hover:border-blue-200 text-gray-700 hover:text-blue-600"
+                title="View Details">
+                <EyeIcon class="w-4 h-4" />
+              </button>
+
+              <!-- <button @click="viewTask"
                 class="p-2 hover:bg-blue-50 rounded-lg border border-gray-400 hover:border-blue-200 text-gray-600 hover:text-blue-600">
                 <EyeIcon class="w-5 h-5" />
-              </button>
+              </button> 
+              -->
             </template>
 
             <button @click="startEditing"
-              class="p-2 hover:bg-indigo-50 rounded-lg border border-gray-400 hover:border-indigo-200 text-gray-600 hover:text-indigo-600">
+              class="p-2 hover:bg-indigo-50 rounded-lg border border-gray-400 hover:border-indigo-200 text-gray-600 hover:text-indigo-600"
+              title="Edit">
               <PencilIcon class="w-5 h-5" />
             </button>
 
             <button @click="deleteTask"
-              class="p-2 hover:bg-red-50 rounded-lg border border-gray-400 hover:border-red-200 text-gray-600 hover:text-red-600">
+              class="p-2 hover:bg-red-50 rounded-lg border border-gray-400 hover:border-red-200 text-gray-600 hover:text-red-600"
+              title="Soft Delete">
               <TrashIcon class="w-5 h-5" />
             </button>
           </template>

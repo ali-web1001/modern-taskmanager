@@ -218,85 +218,85 @@ watch(
 </script>
 
 <template>
-  <div class="min-h-screen bg-emerald-50 py-9 px-4 sm:px-6">
+  <div class="min-h-screen bg-emerald-50">
+    <!-- header -->
+    <Header />
+    <!-- Main content with adjusted padding for different screen sizes -->
+    <div class="relative pt-24 sm:pt-20 pb-9 px-2 sm:px-6">
+      <LoadingComponent v-if="pageLoading" />
+      <div v-else class="max-w-4xl mx-auto">
 
-    <LoadingComponent v-if="pageLoading" />
-
-    <div v-else class="max-w-4xl mx-auto">
-
-      <!-- header -->
-      <Header />
-      <!-- header end -->
-
-      <template v-if="authStore.isAuthenticated">
-        <div class="flex items-center gap-2">
-          <!-- task filter -->
-          <TaskFilters v-model="filters" />
-          <!-- Calendar Toggle Button -->
-          <BaseTooltip text="Toggle calendar view">
-            <button @click="toggleCalendar" class="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 
+        <template v-if="authStore.isAuthenticated">
+          <div class="flex items-center gap-2">
+            <!-- task filter -->
+            <TaskFilters v-model="filters" />
+            <!-- Calendar Toggle Button -->
+            <BaseTooltip text="Toggle calendar view">
+              <button @click="toggleCalendar" class="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 
                      border border-gray-400 flex items-center gap-2">
-              <CalendarIcon class="w-5 h-5" />
-              <span class="hidden sm:inline">
-                {{ showCalendar ? "Hide Calendar" : "Show Calendar" }}
-              </span>
-            </button>
-          </BaseTooltip>
+                <CalendarIcon class="w-5 h-5" />
+                <span class="hidden sm:inline">
+                  {{ showCalendar ? "Hide Calendar" : "Show Calendar" }}
+                </span>
+              </button>
+            </BaseTooltip>
 
-          <!-- Task Form Toggle Button -->
-          <BaseTooltip text="Toggle task form">
-            <button @click="toggleTaskForm" class="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 
+            <!-- Task Form Toggle Button -->
+            <BaseTooltip text="Toggle task form">
+              <button @click="toggleTaskForm" class="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 
                      border border-gray-400 flex items-center gap-2">
-              <component :is="showTaskForm ? MinusCircleIcon : PlusCircleIcon" class="w-5 h-5" />
-              <span class="hidden sm:inline">
-                {{ showTaskForm ? "Hide Form" : "Show Form" }}
-              </span>
-            </button>
-          </BaseTooltip>
-        </div>
+                <component :is="showTaskForm ? MinusCircleIcon : PlusCircleIcon" class="w-5 h-5" />
+                <span class="hidden sm:inline">
+                  {{ showTaskForm ? "Hide Form" : "Show Form" }}
+                </span>
+              </button>
+            </BaseTooltip>
+          </div>
 
-        <div class="mt-3">
-          <!-- Calendar (Collapsible) -->
-          <Transition enter-active-class="transition-all duration-300 ease-out"
-            enter-from-class="opacity-0 transform -translate-y-4" enter-to-class="opacity-100 transform translate-y-0"
-            leave-active-class="transition-all duration-300 ease-in"
-            leave-from-class="opacity-100 transform translate-y-0" leave-to-class="opacity-0 transform -translate-y-4">
-            <div v-if="showCalendar" class="mb-6">
-              <TaskCalendar :tasks="taskStore.tasks" @select:task="handleTaskSelect" />
-              <div v-if="selectedTaskId" class="mt-2 flex justify-end">
-                <button @click="clearTaskSelection"
-                  class="text-sm text-emerald-600 hover:text-gray-50 bg-emerald-100 hover:bg-emerald-400 border border-emerald-500  hover:border-emerald-50 rounded-lg p-2">
-                  Show All
-                </button>
+          <div class="mt-3">
+            <!-- Calendar (Collapsible) -->
+            <Transition enter-active-class="transition-all duration-300 ease-out"
+              enter-from-class="opacity-0 transform -translate-y-4" enter-to-class="opacity-100 transform translate-y-0"
+              leave-active-class="transition-all duration-300 ease-in"
+              leave-from-class="opacity-100 transform translate-y-0"
+              leave-to-class="opacity-0 transform -translate-y-4">
+              <div v-if="showCalendar" class="mb-6">
+                <TaskCalendar :tasks="taskStore.tasks" @select:task="handleTaskSelect" />
+                <div v-if="selectedTaskId" class="mt-2 flex justify-end">
+                  <button @click="clearTaskSelection"
+                    class="text-sm text-emerald-600 hover:text-gray-50 bg-emerald-100 hover:bg-emerald-400 border border-emerald-500  hover:border-emerald-50 rounded-lg p-2">
+                    Show All
+                  </button>
+                </div>
               </div>
+            </Transition>
+          </div>
+
+          <!-- Main Content -->
+          <div class="space-y-4">
+            <!-- Add Task Form -->
+            <div v-if="showTaskForm" class="bg-white rounded-xl shadow-md border border-indigo-300 p-4">
+              <TaskInput @add:task="addTask" />
             </div>
-          </Transition>
-        </div>
-
-        <!-- Main Content -->
-        <div class="space-y-4">
-          <!-- Add Task Form -->
-          <div v-if="showTaskForm" class="bg-white rounded-xl shadow-md border border-indigo-300 p-4">
-            <TaskInput @add:task="addTask" />
+            <!-- Task List -->
+            <div v-if="taskStore.loading" class="text-center py-8">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
+            </div>
+            <TransitionGroup v-else name="slide-fade" tag="div" class="space-y-3">
+              <TaskItem v-for="task in filteredTasks" :key="task.id" :task="task" :id="`task-${task.id}`"
+                @update:task="updateTask" @delete:task="deleteTask" @restore:task="restoreTask"
+                @permanent:delete="permanentlyDeleteTask" />
+            </TransitionGroup>
+            <p v-if="filteredTasks.length === 0 && !taskStore.loading"
+              class="text-center text-gray-100 mt-8 bg-indigo-600 p-4 rounded-lg">
+              No tasks found. Try adjusting your filters or add a new task!
+            </p>
           </div>
-          <!-- Task List -->
-          <div v-if="taskStore.loading" class="text-center py-8">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
-          </div>
-          <TransitionGroup v-else name="slide-fade" tag="div" class="space-y-3">
-            <TaskItem v-for="task in filteredTasks" :key="task.id" :task="task" :id="`task-${task.id}`"
-              @update:task="updateTask" @delete:task="deleteTask" @restore:task="restoreTask"
-              @permanent:delete="permanentlyDeleteTask" />
-          </TransitionGroup>
-          <p v-if="filteredTasks.length === 0 && !taskStore.loading"
-            class="text-center text-gray-100 mt-8 bg-indigo-600 p-4 rounded-lg">
-            No tasks found. Try adjusting your filters or add a new task!
-          </p>
-        </div>
-      </template>
+        </template>
 
-      <!-- Welcome Screen -->
-      <Welcome v-else />
+        <!-- Welcome Screen -->
+        <Welcome v-else />
+      </div>
     </div>
   </div>
 </template>
