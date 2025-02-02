@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { supabase } from "../lib/supabase";
-import type { User, Provider } from "@supabase/supabase-js";
+import type { User, Provider, UserIdentity } from "@supabase/supabase-js";
 
 interface AuthState {
   user: User | null;
@@ -89,6 +89,60 @@ export const useAuthStore = defineStore("auth", {
         return data;
       } catch (error: any) {
         throw new Error(error.message || `Login with ${provider} failed`);
+      }
+    },
+
+    async linkIdentity(provider: Provider) {
+      try {
+        // This will initiate the linking process for an already logged-in user
+        const { data, error } = await supabase.auth.linkIdentity({
+          provider,
+        });
+
+        if (error) throw error;
+        return data;
+      } catch (error: any) {
+        throw new Error(`Failed to link ${provider} account: ${error.message}`);
+      }
+    },
+
+    async unlinkIdentity(identity: any) {
+      try {
+        // Get user identities with proper type checking
+        const { data, error } = await supabase.auth.getUserIdentities();
+
+        if (error) throw error;
+
+        // Check if data exists and has identities
+        if (!data?.identities || data.identities.length < 2) {
+          throw new Error(
+            "Cannot unlink the only identity. Add another login method first."
+          );
+        }
+
+        const { data: unlinkData, error: unlinkError } =
+          await supabase.auth.unlinkIdentity(identity);
+        if (unlinkError) throw unlinkError;
+        return unlinkData;
+      } catch (error: any) {
+        throw new Error(`Failed to unlink identity: ${error.message}`);
+      }
+    },
+
+    async getLinkedIdentities(): Promise<UserIdentity[]> {
+      try {
+        const { data, error } = await supabase.auth.getUserIdentities();
+
+        if (error) throw error;
+
+        // Safely handle the possibility of null data
+        if (!data?.identities) {
+          return [];
+        }
+
+        return data.identities;
+      } catch (error: any) {
+        throw new Error("Failed to fetch linked identities");
       }
     },
 

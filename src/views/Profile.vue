@@ -5,7 +5,7 @@ import { useRouter } from "vue-router";
 import { ArrowLeftIcon } from "@heroicons/vue/24/outline";
 import { useToast } from "vue-toastification";
 import LoadingComponent from "../components/LoadingComponent.vue";
-
+import LinkedAccounts from '../components/LinkedAccounts.vue';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -96,7 +96,7 @@ const goBack = () => {
           </button>
         </div>
 
-        <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+        <div class="bg-white shadow-lg rounded-lg overflow-hidden p-8">
           <div class="px-6 py-8">
             <div class="text-center mb-8">
               <div class="mb-4 relative">
@@ -180,6 +180,10 @@ const goBack = () => {
                 </button>
               </div>
             </form>
+            <div class="mt-10 border-t pt-6">
+              <h3 class="text-xl text-sr font-semibold text-gray-900 mb-4">Linked Accounts</h3>
+              <LinkedAccounts />
+            </div>
           </div>
         </div>
       </div>
