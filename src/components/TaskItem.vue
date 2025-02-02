@@ -200,7 +200,6 @@ const displayCategory = computed(() => {
       'bg-gray-50': task.deletedAt,
     }">
       <div class="flex items-center flex-1 min-w-0">
-
         <!-- the !!task.deletedAt is used to convert the value of task.deletedAt to a boolean (true or false).
         The disabled attribute is set to true if the task is deleted (i.e., task.deletedAt is not null or undefined), and the button is disabled.
         If the task is not deleted, the button will be enabled. -->

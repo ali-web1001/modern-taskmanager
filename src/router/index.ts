@@ -9,7 +9,7 @@ import Login from "../views/Login.vue";
 import Register from "../views/Register.vue";
 // import Profile from "../views/Profile.vue";
 import { nextTick } from "vue";
-import AuthCallBack from "../views/AuthCallBack.vue";
+import AuthCallback from "../views/AuthCallback.vue";
 
 // Create the router instance
 const router = createRouter({
@@ -42,7 +42,7 @@ const router = createRouter({
     {
       path: "/auth/callback",
       name: "auth-callback",
-      component: AuthCallBack, // Remove the function wrapper
+      component: AuthCallback, // Remove the function wrapper
     },
     // Add a catch-all route for Netlify
     {
