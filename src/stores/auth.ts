@@ -63,21 +63,23 @@ export const useAuthStore = defineStore("auth", {
 
     async loginWithProvider(provider: Provider) {
       try {
-        const { error } = await supabase.auth.signInWithOAuth({
+        const redirectUrl = `${window.location.origin}/auth/callback`;
+
+        const { data, error } = await supabase.auth.signInWithOAuth({
           provider,
           options: {
-            redirectTo: `${window.location.origin}/auth/callback`,
-            // Add these options for better cookie handling
-            // cookieOptions: {
-            //   name: "sb-auth-token",
-            //   lifetime: 60 * 60 * 24 * 7, // 1 week
-            //   domain: window.location.hostname,
-            //   sameSite: "Lax",
-            // },
+            redirectTo: redirectUrl,
+            skipBrowserRedirect: false, // Ensure browser redirect happens
+            queryParams: {
+              // Add any additional OAuth scopes if needed
+              access_type: "offline",
+              prompt: "consent",
+            },
           },
         });
 
         if (error) throw error;
+        return data;
       } catch (error: any) {
         throw new Error(error.message || `Login with ${provider} failed`);
       }

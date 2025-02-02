@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { useToast } from "vue-toastification";
+import { supabase } from "../lib/supabase";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -11,36 +12,44 @@ const error = ref<string | null>(null);
 
 onMounted(async () => {
   try {
-    // Check if there's an error in the URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const errorParam = urlParams.get("error");
-    const errorDescription = urlParams.get("error_description");
+    // First check for hash parameters (some OAuth providers use hash)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const searchParams = new URLSearchParams(window.location.search);
+
+    // Check both hash and search parameters for errors
+    const errorParam = hashParams.get("error") || searchParams.get("error");
+    const errorDescription = hashParams.get("error_description") ||
+      searchParams.get("error_description");
 
     if (errorParam) {
+      console.error("OAuth Error:", errorParam, errorDescription);
       throw new Error(errorDescription || "Authentication failed");
     }
 
-    // Wait for auth state to be checked and updated
-    await authStore.checkAuth();
+    // Handle the OAuth callback
+    const { data, error } = await supabase.auth.getSession();
 
-    if (!authStore.isAuthenticated) {
-      throw new Error("Authentication failed - no session found");
+    if (error) throw error;
+
+    if (!data.session) {
+      throw new Error("No session found after authentication");
     }
 
-    // Get the intended redirect path or default to home
-    const redirectPath = localStorage.getItem("authRedirect") || "/";
-    localStorage.removeItem("authRedirect"); // Clean up
+    // Update auth store
+    await authStore.checkAuth();
 
-    // Show success message
     toast.success("Successfully signed in!");
 
-    // Redirect to the intended destination
+    // Redirect to home or intended page
+    const redirectPath = localStorage.getItem("authRedirect") || "/";
+    localStorage.removeItem("authRedirect");
     await router.replace(redirectPath);
+
   } catch (err) {
+    console.error("Auth callback error:", err);
     error.value = err instanceof Error ? err.message : "Authentication failed";
     toast.error(error.value);
 
-    // On error, redirect to login after a short delay
     setTimeout(() => {
       router.replace("/login");
     }, 2000);
