@@ -1,10 +1,16 @@
 import { defineStore } from "pinia";
 import { supabase } from "../lib/supabase";
-import type { User, Provider, UserIdentity } from "@supabase/supabase-js";
+import type {
+  User,
+  Provider,
+  UserIdentity,
+  AuthError,
+} from "@supabase/supabase-js";
 
 interface AuthState {
   user: User | null;
   loading: boolean;
+  errorMessage: string | null; // Add this
 }
 
 interface ProfileUpdateData {
@@ -12,15 +18,14 @@ interface ProfileUpdateData {
   avatar_url?: string | File; // Modified to accept File type
 }
 
-// interface UploadResponse {
-//   path: string;
-//   fullPath: string;
-// }
-
+interface ExtendedAuthError extends AuthError {
+  error_code?: string;
+}
 export const useAuthStore = defineStore("auth", {
   state: (): AuthState => ({
     user: null,
     loading: true,
+    errorMessage: null, // Initialize
   }),
 
   getters: {
@@ -85,7 +90,16 @@ export const useAuthStore = defineStore("auth", {
           },
         });
 
-        if (error) throw error;
+        if (error) {
+          const authError = error as ExtendedAuthError;
+          if (authError.error_code === "identity_already_exists") {
+            this.errorMessage =
+              "This identity is already linked to another user.";
+          } else {
+            this.errorMessage = authError.message;
+          }
+          throw error;
+        }
         return data;
       } catch (error: any) {
         throw new Error(error.message || `Login with ${provider} failed`);
@@ -99,7 +113,16 @@ export const useAuthStore = defineStore("auth", {
           provider,
         });
 
-        if (error) throw error;
+        if (error) {
+          const authError = error as ExtendedAuthError;
+          if (authError.error_code === "identity_already_exists") {
+            this.errorMessage =
+              "This identity is already linked to another user.";
+          } else {
+            this.errorMessage = authError.message;
+          }
+          throw error;
+        }
         return data;
       } catch (error: any) {
         throw new Error(`Failed to link ${provider} account: ${error.message}`);

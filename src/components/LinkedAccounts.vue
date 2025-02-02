@@ -12,6 +12,7 @@ interface IdentityData {
 
 const authStore = useAuthStore();
 const toast = useToast();
+const errorMessage = ref<string | null>(null);
 
 // State management with proper typing
 const linkedAccounts = ref<UserIdentity[]>([]);
@@ -43,10 +44,12 @@ async function loadLinkedAccounts() {
 async function linkNewProvider(provider: Provider) {
   try {
     loading.value = true;
+    errorMessage.value = null; // Reset error before linking
     await authStore.linkIdentity(provider);
     toast.success(`Started linking ${provider} account`);
   } catch (error: any) {
-    toast.error(error.message);
+    errorMessage.value = error.message || "An unexpected error occurred.";
+    toast.error(errorMessage.value);
     console.error("Error linking provider:", error);
   } finally {
     loading.value = false;
@@ -60,7 +63,7 @@ async function unlinkProvider(identity: UserIdentity) {
     await loadLinkedAccounts(); // Refresh the list
     toast.success("Account unlinked successfully");
   } catch (error: any) {
-    toast.error(error.message);
+    toast.error(error.message || "Failed to unlink account.");
     console.error("Error unlinking provider:", error);
   } finally {
     loading.value = false;

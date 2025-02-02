@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { LockClosedIcon } from "@heroicons/vue/24/solid";
 import type { Provider } from "@supabase/supabase-js";
+import { useToast } from "vue-toastification";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -12,6 +13,7 @@ const email = ref("");
 const password = ref("");
 const error = ref("");
 const loading = ref(false);
+const toast = useToast();
 
 const handleLogin = async () => {
   try {
@@ -21,6 +23,7 @@ const handleLogin = async () => {
     router.push("/");
   } catch (err: any) {
     error.value = err.message;
+    toast.error(err.message || "Failed to sign in.");
   } finally {
     loading.value = false;
   }
@@ -37,6 +40,7 @@ const handleSocialLogin = async (provider: Provider) => {
     await authStore.loginWithProvider(provider);
   } catch (err: any) {
     error.value = err.message;
+    toast.error(err.message || "Social login failed.");
   }
 };
 </script>
@@ -57,18 +61,12 @@ const handleSocialLogin = async (provider: Provider) => {
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <div class="bg-white py-8 px-4 shadow-xl sm:rounded-lg sm:px-10">
-
         <div v-if="error" class="rounded-md bg-red-50 p-4 mb-6">
-          <div class="flex">
-            <div class="ml-3">
-              <h3 class="text-sm font-medium text-red-800">{{ error }}</h3>
-            </div>
-          </div>
+          <h3 class="text-sm font-medium text-red-800">{{ error }}</h3>
         </div>
 
         <!-- Social Login Buttons -->
         <div class="space-y-3">
-
           <button @click="handleSocialLogin('github')"
             class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
             <img src="https://github.com/favicon.ico" alt="GitHub" class="w-5 h-5 mr-2" />
