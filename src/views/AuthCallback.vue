@@ -12,26 +12,20 @@ const error = ref<string | null>(null);
 
 onMounted(async () => {
   try {
-    // First check for hash parameters (some OAuth providers use hash)
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const searchParams = new URLSearchParams(window.location.search);
-
-    // Check both hash and search parameters for errors
-    const errorParam = hashParams.get("error") || searchParams.get("error");
-    const errorDescription = hashParams.get("error_description") ||
-      searchParams.get("error_description");
+    const errorParam = searchParams.get("error");
+    const errorDescription = searchParams.get("error_description");
 
     if (errorParam) {
       console.error("OAuth Error:", errorParam, errorDescription);
       throw new Error(errorDescription || "Authentication failed");
     }
 
-    // Handle the OAuth callback
-    const { data, error } = await supabase.auth.getSession();
+    // Get the session directly from Supabase
+    const { data: { session }, error } = await supabase.auth.getSession();
 
     if (error) throw error;
-
-    if (!data.session) {
+    if (!session) {
       throw new Error("No session found after authentication");
     }
 
@@ -39,11 +33,7 @@ onMounted(async () => {
     await authStore.checkAuth();
 
     toast.success("Successfully signed in!");
-
-    // Redirect to home or intended page
-    const redirectPath = localStorage.getItem("authRedirect") || "/";
-    localStorage.removeItem("authRedirect");
-    await router.replace(redirectPath);
+    await router.replace("/");
 
   } catch (err) {
     console.error("Auth callback error:", err);

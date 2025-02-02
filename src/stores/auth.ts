@@ -69,11 +69,18 @@ export const useAuthStore = defineStore("auth", {
           provider,
           options: {
             redirectTo: redirectUrl,
+            // scopes: 'user:email', // Request only the scopes you need for GitHub:
             skipBrowserRedirect: false, // Ensure browser redirect happens
             queryParams: {
               // Add any additional OAuth scopes if needed
               access_type: "offline",
+              // access_type=offline is primarily associated with Google's OAuth implementation, not GitHub's.
+              // As for prompt=consent, this parameter is used to control the OAuth authorization screen behavior:
+              // When you set prompt=consent, you're forcing the authorization screen to appear every time, even if the user has previously authorized your application.
+              //
               prompt: "consent",
+              // GitHub's OAuth implementation actually uses different parameters for this purpose. According to the documentation, GitHub uses:
+              // prompt: 'select_account' // Forces the account picker to appear
             },
           },
         });
