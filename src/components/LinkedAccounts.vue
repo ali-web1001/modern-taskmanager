@@ -77,7 +77,7 @@ async function unlinkProvider(identity: UserIdentity) {
       <div
         v-for="identity in linkedAccounts"
         :key="identity.id"
-        class="flex justify-between items-center p-4 mb-2 border rounded"
+        class="flex flex-wrap justify-between items-center p-4 mb-2 border rounded"
       >
         <div>
           <span class="font-medium">{{ identity.provider }}</span>
@@ -88,7 +88,7 @@ async function unlinkProvider(identity: UserIdentity) {
 
         <button
           @click="unlinkProvider(identity)"
-          class="text-red-600 hover:text-red-800"
+          class="text-red-600 hover:text-red-800 "
           :disabled="linkedAccounts.length < 2"
         >
           Unlink
@@ -97,18 +97,6 @@ async function unlinkProvider(identity: UserIdentity) {
 
       <!-- Add new provider buttons -->
       <div class="mt-4 space-y-2">
-        <button
-          @click="linkNewProvider('google')"
-          class="w-full flex items-center justify-center px-4 py-2 border rounded"
-        >
-          <img
-            src="https://www.google.com/favicon.ico"
-            alt="Google"
-            class="w-5 h-5 mr-2"
-          />
-          Link Google Account
-        </button>
-
         <button
           @click="linkNewProvider('github')"
           class="w-full flex items-center justify-center px-4 py-2 border rounded"
@@ -120,6 +108,20 @@ async function unlinkProvider(identity: UserIdentity) {
           />
           Link GitHub Account
         </button>
+
+        <button
+          @click="linkNewProvider('google')" :disabled="true"
+          class="w-full flex items-center justify-center px-4 py-2 border rounded"
+        >
+          <img
+            src="https://www.google.com/favicon.ico"
+            alt="Google"
+            class="w-5 h-5 mr-2"
+          />
+          Link Google Account
+        </button>
+
+       
       </div>
     </div>
   </div>

@@ -109,8 +109,8 @@ const goBack = () => {
 
                   <!-- Overlay for hover effect -->
                   <div
-                    class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                    <span class="text-white text-sm">Change Photo</span>
+                    class="absolute rounded-md inset-0 bg-indigo-950 bg-opacity-50 flex items-center justify-center opacity-10 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    <span class="text-indigo-50 text-sm">Change Photo</span>
                   </div>
 
                   <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer"
