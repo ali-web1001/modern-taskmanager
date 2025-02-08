@@ -162,10 +162,11 @@ const handleDateSelect = (date: Date | null) => {
   <form @submit.prevent="addTask" class="space-y-4">
     <div class="flex flex-col sm:flex-row gap-3">
       <div class="flex-1">
-        <label for="category" class="block text-gray-700 font-medium mb-1">Add Task <span
+        <label for="category" class="block text-gray-700 dark:text-gray-100 font-medium mb-1">Add Task <span
             class="text-red-500">*</span></label>
         <textarea v-model="newTask" type="text" placeholder="Add a new task..."
-          class="input-primary w-full flex-1 transition-all duration-100 rounded-md outline-none" :class="{
+          class="input-primary w-full flex-1 transition-all text-gray-700 dark:text-gray-100 duration-100 rounded-md outline-none bg-white dark:bg-gray-900"
+          :class="{
             'border border-red-600 ring-1 ring-red-300': error,
             'border border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500': !error
           }" />
@@ -176,12 +177,13 @@ const handleDateSelect = (date: Date | null) => {
     <!-- Category  -->
     <div class="flex flex-wrap gap-4">
       <div class="flex-1 min-w-[200px]">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Select Category <span
-            class="text-red-500">*</span></label>
+
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Select Category<span
+            class="text-red-500"> *</span></label>
 
         <div class="relative">
           <select v-model="selectedCategory"
-            class="input-primary border border-gray-400  w-full appearance-none focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all duration-200 outline-none">
+            class="input-primary border border-gray-400 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-50 w-full appearance-none focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all duration-200 outline-none">
 
             <option value="Select Category" disabled selected>
               Select Category
@@ -202,7 +204,7 @@ const handleDateSelect = (date: Date | null) => {
 
           <!-- Clear Button -->
           <button v-if="selectedCategory" type="button" @click="selectedCategory = ''"
-            class="absolute inset-y-0 right-8 flex items-center justify-center text-gray-400 hover:text-indigo-600 transition-all duration-200 rounded-full">
+            class="absolute inset-y-0 right-8 flex items-center justify-center text-gray-400 dark:text-gray-50 hover:text-indigo-600 transition-all duration-200 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -210,7 +212,8 @@ const handleDateSelect = (date: Date | null) => {
             </svg>
           </button>
 
-          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+          <div
+            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-50">
             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
               <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
             </svg>
@@ -219,7 +222,7 @@ const handleDateSelect = (date: Date | null) => {
       </div>
 
       <div class="flex-1 min-w-[200px] relative">
-        <label class="block text-sm font-medium text-gray-700 mb-1"> Due Date <span
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-50 mb-1"> Due Date <span
             class="text-red-500">*</span></label>
 
         <VueDatePicker v-model="dueDate" :min-date="minDate" :is-required="true" :action-row="{ showNow: true }"
@@ -236,7 +239,7 @@ const handleDateSelect = (date: Date | null) => {
 
     <div>
       <button type="button" @click="showLabels = !showLabels"
-        class="flex items-center border border-gray-400 px-3 py-2 rounded-lg  focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all duration-200">
+        class="flex items-center border border-gray-400 dark:border-gray-400 px-3 py-2 text-gray-600 dark:text-gray-50 rounded-lg  focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all duration-200">
         <TagIcon class="w-5 h-5 mr-1.5" />
         {{ showLabels ? "Hide Labels" : "Show Labels" }}
       </button>
@@ -253,14 +256,14 @@ const handleDateSelect = (date: Date | null) => {
       </div>
     </div>
 
-    <button type="submit" class="btn-primary whitespace-nowrap">
+    <button type="submit" class="btn-primary dark:hover:bg-indigo-500 whitespace-nowrap">
       <PlusIcon class="w-5 h-5 mr-1.5" />
       Submit
     </button>
   </form>
 </template>
 
-<style scoped>
+<!-- <style scoped>
 /* Remove blue dots and customize calendar appearance */
 :deep(.vc-container) {
   --vc-color: rgb(99 102 241);
@@ -292,4 +295,4 @@ const handleDateSelect = (date: Date | null) => {
   background-color: rgba(99, 102, 241, 0.1);
   /* Light indigo hover effect */
 }
-</style>
+</style> -->

@@ -5,6 +5,7 @@ import { useAuthStore } from "../stores/auth";
 import { LockClosedIcon } from "@heroicons/vue/24/solid";
 import type { Provider } from "@supabase/supabase-js";
 import { useToast } from "vue-toastification";
+import Header from "../components/Header.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -46,21 +47,29 @@ const handleSocialLogin = async (provider: Provider) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div class="min-h-screen bg-indigo-100 dark:bg-gray-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <h2 class="text-center text-3xl font-extrabold text-gray-900">
+      <Header v-if="!authStore.isAuthenticated" />
+
+      <div>
+        <h1 class="text-center text-2xl font-serif mb-5 text-gray-600 dark:text-gray-300">
+         Welcome Back!
+        </h1>
+      </div>
+
+      <h2 class="text-center text-3xl font-bold text-gray-900 dark:text-gray-200">
         Sign in to your account
       </h2>
-      <p class="mt-2 text-center text-sm text-gray-600">
+      <p class="mt-2 text-center text-sm text-gray-500">
         Or
-        <router-link to="/register" class="font-medium text-indigo-600 hover:text-indigo-500 underline">
+        <router-link to="/register" class="font-medium text-indigo-500 hover:text-indigo-500 underline">
           Create a New Account
         </router-link>
       </p>
     </div>
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-      <div class="bg-white py-8 px-4 shadow-xl sm:rounded-lg sm:px-10">
+      <div class="bg-gray-50 dark:bg-indigo-100 py-8 px-4 shadow-xl sm:rounded-lg sm:px-10">
         <div v-if="error" class="rounded-md bg-red-50 p-4 mb-6">
           <h3 class="text-sm font-medium text-red-800">{{ error }}</h3>
         </div>
@@ -68,13 +77,13 @@ const handleSocialLogin = async (provider: Provider) => {
         <!-- Social Login Buttons -->
         <div class="space-y-3">
           <button @click="handleSocialLogin('github')"
-            class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white dark:bg-indigo-50 hover:bg-gray-50">
             <img src="https://github.com/favicon.ico" alt="GitHub" class="w-5 h-5 mr-2" />
             Continue with GitHub
           </button>
 
           <button @click="handleSocialLogin('google')" :disabled="true"
-            class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white dark:bg-indigo-50 hover:bg-gray-50">
             <img src="https://www.google.com/favicon.ico" alt="Google" class="w-5 h-5 mr-2" />
             Continue with Google
           </button>
@@ -86,7 +95,7 @@ const handleSocialLogin = async (provider: Provider) => {
               <div class="w-full border-t border-gray-300"></div>
             </div>
             <div class="relative flex justify-center text-sm">
-              <span class="px-2 bg-white text-gray-500">Or continue with</span>
+              <span class="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-50 text-gray-600">Or continue with</span>
             </div>
           </div>
         </div>
@@ -98,7 +107,7 @@ const handleSocialLogin = async (provider: Provider) => {
             </label>
             <div class="mt-1">
               <input id="email" v-model="email" type="email" required autocomplete="email"
-                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                class="appearance-none block w-full px-3 py-2 bg-white dark:bg-indigo-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
             </div>
           </div>
 
@@ -108,7 +117,7 @@ const handleSocialLogin = async (provider: Provider) => {
             </label>
             <div class="mt-1">
               <input id="password" v-model="password" type="password" required autocomplete="current-password"
-                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                class="appearance-none block w-full px-3 py-2 bg-white dark:bg-indigo-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
             </div>
           </div>
 

@@ -8,13 +8,46 @@
 }
 
 body {
-  @apply bg-gray-200;
+  @apply bg-gray-200 dark:bg-gray-900;
+  font-family: "Saira", sans-serif;
 }
 
+/* Dark mode styles for SweetAlert2 */
+.swal2-dark-mode {
+  background-color: #00020a !important;
+  /* Adds an 8px vertical offset, 16px blur, and uses a semi-transparent blue */
+  box-shadow: 0 1px 15px 1px rgba(79, 42, 199, 0.6) !important;
+  color: #ffffff !important;
+}
+
+.swal2-dark-mode .swal2-title {
+  color: #ffffff !important;
+}
+
+.swal2-dark-mode .swal2-content {
+  color: #e0e0e0 !important;
+}
+
+.swal2-dark-mode .swal2-confirm {
+  background-color: #d33 !important;
+  color: #ffffff !important;
+}
+
+.swal2-dark-mode .swal2-cancel {
+  background-color: #3085d6 !important;
+  color: #ffffff !important;
+}
+
+/* h1,
+h2,
+h3 {
+  font-family: "", sans-serif;
+} */
+
 .btn-primary {
-  @apply px-4 py-2.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 
+  @apply px-4 py-2.5 bg-indigo-500 dark:bg-indigo-600 text-white dark:text-white rounded-lg hover:bg-indigo-600 dark:hover:bg-indigo-200
     focus:outline-none focus:ring-2 focus:ring-indigo-200 transition-colors 
-    flex items-center justify-center font-medium shadow-sm hover:shadow-md;
+    flex items-center justify-center font-medium shadow-sm hover:shadow-emerald-100 dark:hover:shadow-emerald-950;
 }
 
 .btn-secondary {
@@ -27,7 +60,7 @@ body {
 }
 
 .task-card {
-  @apply bg-gray-50  rounded-xl shadow-sm hover:shadow-md transition-all duration-200 
+  @apply bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-50 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 
     border border-indigo-300 p-5;
 }
 

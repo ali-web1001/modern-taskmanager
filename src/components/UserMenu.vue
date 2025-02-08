@@ -56,25 +56,25 @@ if (typeof window !== "undefined") {
       </div>
 
       <span
-        class="hidden sm:flex text-sm lg:text-base text-gray-700 max-w-[120px] sm:max-w-[150px] lg:max-w-[200px] truncate">
+        class="hidden sm:flex text-sm lg:text-base text-gray-700 dark:text-gray-300 max-w-[120px] sm:max-w-[150px] lg:max-w-[200px] truncate">
         {{ authStore.user?.user_metadata?.name || authStore.user?.email }}
       </span>
     </button>
 
     <!-- Dropdown Menu - Responsive positioning -->
     <div v-if="showMenu"
-      class="absolute right-[-2] sm:right-auto sm:left-0 origin-top-right mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+      class="absolute right-[-2] sm:right-auto sm:left-0 origin-top-right mt-2 w-32 rounded-lg shadow-lg bg-white dark:bg-gray-800 ring-2 ring-black ring-opacity-5 z-50"
       :class="{
         'transform -translate-x-[calc(100%-32px)] sm:translate-x-0': true
       }">
       <div class="py-1">
         <button @click="navigateToProfile"
-          class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+          class="w-full text-left px-4 py-2 rounded-sm text-sm bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-900 flex items-center">
           <Cog6ToothIcon class="w-5 h-5 mr-2" />
           Profile Settings
         </button>
         <button @click="handleLogout"
-          class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+          class="w-full text-left px-4 py-2 text-sm rounded-sm bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-900 flex items-center">
           <ArrowRightOnRectangleIcon class="w-5 h-5 mr-2" />
           Sign Out
         </button>

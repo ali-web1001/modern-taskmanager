@@ -11,11 +11,11 @@
             <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
             <div class="flex min-h-screen items-center justify-center p-2 text-center sm:items-center sm:p-0">
-                <div class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-3xl sm:p-6"
+                <div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-950 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-3xl sm:p-6"
                     @click.stop>
                     <!-- Close button -->
                     <button @click="close"
-                        class="absolute right-5 top-4 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:rounded focus:ring-indigo-500">
+                        class="absolute right-5 top-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:rounded focus:ring-indigo-500">
                         <XMarkIcon class="h-6 w-6" />
                     </button>
 
@@ -29,7 +29,7 @@
                                         <CheckCircleIcon class="w-8 h-8 transition-colors"
                                             :class="task.completed ? 'text-green-500' : 'text-gray-400'" />
                                     </button> -->
-                                    <h3 class="text-xl font-semibold text-gray-900"
+                                    <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100"
                                         :class="{ 'line-through': task.completed }">
                                         {{ task.title }}
                                     </h3>
@@ -37,7 +37,7 @@
 
                                 <!-- Category -->
                                 <div v-if="task.category" class="mt-3">
-                                    <span class="px-3 py-1 rounded-md bg-gray-200 text-gray-800 text-sm">
+                                    <span class="px-3 py-1 rounded-md bg-gray-200 text-gray-800  text-sm">
                                         Category : {{ task.category }}
                                     </span>
                                 </div>
@@ -45,7 +45,7 @@
 
                             <!-- Dates -->
                             <div class="space-y-3">
-                                <div class="flex items-center gap-2 text-sm text-gray-600">
+                                <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-100">
                                     <CalendarIcon class="w-5 h-5" />
                                     <span>Created: {{ formatDate(new Date(task.createdAt)) }}</span>
                                 </div>
@@ -60,7 +60,7 @@
                                 <!-- Labels -->
                                 <div v-if="task.labels?.length" class="flex flex-wrap gap-2">
                                     <span v-for="label in task.labels" :key="label"
-                                        class="px-3 py-1 rounded bg-indigo-100 text-indigo-700 text-sm">
+                                        class="px-3 py-1 rounded bg-indigo-100 text-indigo-700 dark:text-indigo-700 text-sm">
                                         Label :- {{ label }}
                                     </span>
                                 </div>
@@ -75,12 +75,12 @@
                             <div class="mt-6 flex justify-end gap-3">
                                 <template v-if="task.deletedAt">
                                     <button @click="restore"
-                                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-green-50 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-green-100 dark:hover:bg-green-100 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                         <ArrowUturnLeftIcon class="w-5 h-5 mr-2" />
                                         Restore
                                     </button>
                                     <button @click="permanentlyDelete"
-                                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-red-50 dark:hover:bg-red-100 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                         <TrashIcon class="w-5 h-5 mr-2" />
                                         Delete Permanently
                                     </button>

@@ -83,7 +83,7 @@ const goBack = () => {
 
 <template>
   <div class="">
-    <div class="min-h-screen bg-emerald-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-screen bg-indigo-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
       <!-- Show loading component while page is loading -->
       <LoadingComponent v-if="pageLoading" />
 
@@ -96,12 +96,12 @@ const goBack = () => {
           </button>
         </div>
 
-        <div class="bg-white shadow-lg rounded-lg overflow-hidden p-8">
+        <div class="bg-white dark:bg-gray-900 shadow-lg rounded-lg overflow-hidden p-8">
           <div class="px-6 py-8">
             <div class="text-center mb-8">
               <div class="mb-4 relative">
                 <div
-                  class="w-24 h-24 rounded-full bg-indigo-100 mx-auto flex items-center justify-center overflow-hidden group">
+                  class="w-24 h-24 rounded-full bg-indigo-100 dark:bg-gray-800 mx-auto flex items-center justify-center overflow-hidden group">
                   <img v-if="avatar" :src="avatar" :alt="name" class="w-24 h-24 object-cover" />
                   <span v-else class="text-4xl text-indigo-600">
                     {{ name.charAt(0).toUpperCase() }}
@@ -110,22 +110,22 @@ const goBack = () => {
                   <!-- Overlay for hover effect -->
                   <div
                     class="absolute rounded-md inset-0 bg-indigo-950 bg-opacity-50 flex items-center justify-center opacity-10 group-hover:opacity-100 transition-opacity cursor-pointer">
-                    <span class="text-indigo-50 text-sm">Change Photo</span>
+                    <span class="text-indigo-50 dark:text-indigo-100 text-sm">Change Photo</span>
                   </div>
 
                   <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer"
                     @change="handleAvatarChange" />
                 </div>
               </div>
-              <h2 class="text-2xl font-bold text-gray-900">Profile Settings</h2>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-200">Profile Settings</h2>
             </div>
 
             <form @submit.prevent="updateProfile" class="space-y-6">
               <!-- Success Message -->
-              <div v-if="success" class="rounded-md bg-green-50 p-4 mb-4">
+              <div v-if="success" class="rounded-md bg-green-100 dark:bg-green-100 p-4 mb-4">
                 <div class="flex">
                   <div class="ml-3">
-                    <p class="text-sm font-medium text-green-800">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-800">
                       Profile Updated Redirecting...
                     </p>
                   </div>
@@ -133,10 +133,10 @@ const goBack = () => {
               </div>
 
               <!-- Error Message -->
-              <div v-if="error" class="rounded-md bg-red-50 p-4 mb-4">
+              <div v-if="error" class="rounded-md bg-red-50 dark:bg-red-200 p-4 mb-4">
                 <div class="flex">
                   <div class="ml-3">
-                    <p class="text-sm font-medium text-red-800">
+                    <p class="text-sm font-medium text-red-800 dark:text-red-800">
                       {{ error }}
                     </p>
                   </div>
@@ -144,17 +144,17 @@ const goBack = () => {
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-100">
                   Email
                 </label>
 
                 <input type="email" v-model="email" disabled
-                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500" />
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 dark:text-gray-800" />
                 <p class="mt-1 text-sm text-gray-500">Email cannot be changed</p>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   Full Name
                 </label>
                 <input type="text" v-model="name" required
@@ -162,7 +162,7 @@ const goBack = () => {
               </div>
 
               <div class="flex justify-between">
-                <button type="button" @click="goBack" class="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-300 
+                <button type="button" @click="goBack" class="p-2 bg-gray-100 text-gray-600 dark:text-gray-800 rounded-lg hover:bg-gray-200 
                      border border-gray-400 flex items-center gap-2">
                   Cancel
                 </button>
@@ -181,7 +181,7 @@ const goBack = () => {
               </div>
             </form>
             <div class="mt-10 border-t pt-6">
-              <h3 class="text-xl text-sr font-semibold text-gray-900 mb-4">Linked Accounts</h3>
+              <h3 class="text-xl text-sr font-semibold text-gray-900 dark:text-gray-200 mb-4">Linked Accounts</h3>
               <LinkedAccounts />
             </div>
           </div>

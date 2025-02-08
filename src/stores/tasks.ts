@@ -5,6 +5,7 @@ import type { Database } from "../types/supabase";
 import { useAuthStore } from "./auth";
 import { useToast } from "vue-toastification";
 import Swal from "sweetalert2";
+import { useThemeStore } from "./theme";
 
 const toast = useToast();
 
@@ -238,6 +239,9 @@ export const useTaskStore = defineStore("tasks", {
 
     async permanentlyDeleteTask(id: string) {
       try {
+        // Get the theme store inside the function (ensuring it’s up-to-date and within context)
+        const themeStore = useThemeStore();
+        const isDark = themeStore.isDark; // now gets the current state
         // Show confirmation dialog
         const result = await Swal.fire({
           title: "Are you sure?",
@@ -247,6 +251,9 @@ export const useTaskStore = defineStore("tasks", {
           confirmButtonColor: "#d33",
           cancelButtonColor: "#3085d6",
           confirmButtonText: "Yes, delete it!",
+          customClass: {
+            popup: isDark ? "swal2-dark-mode" : "",
+          },
         });
 
         if (!result.isConfirmed) return;

@@ -194,9 +194,10 @@ watch(
     if (newVal.selectedLabels.length !== oldVal.selectedLabels.length) {
       if (newVal.selectedLabels.length > 0) {
         toast.success(`Labels selected: ${newVal.selectedLabels.join(", ")}`);
-      } else {
-        toast.info("Label filters cleared");
       }
+      //  else {
+      //   toast.info("Label filters cleared");
+      // }
     }
 
     // Date range filter
@@ -218,7 +219,7 @@ watch(
 </script>
 
 <template>
-  <div class="min-h-screen bg-emerald-50">
+  <div class="min-h-screen bg-indigo-100 dark:bg-gray-950">
     <!-- header -->
     <Header />
     <!-- Main content with adjusted padding for different screen sizes -->
@@ -232,7 +233,7 @@ watch(
             <TaskFilters v-model="filters" />
             <!-- Calendar Toggle Button -->
             <BaseTooltip text="Toggle calendar view">
-              <button @click="toggleCalendar" class="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 
+              <button @click="toggleCalendar" class="p-2 bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-100 
                      border border-gray-400 flex items-center gap-2">
                 <CalendarIcon class="w-5 h-5" />
                 <span class="hidden sm:inline">
@@ -243,7 +244,7 @@ watch(
 
             <!-- Task Form Toggle Button -->
             <BaseTooltip text="Toggle task form">
-              <button @click="toggleTaskForm" class="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 
+              <button @click="toggleTaskForm" class="p-2 bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-100 
                      border border-gray-400 flex items-center gap-2">
                 <component :is="showTaskForm ? MinusCircleIcon : PlusCircleIcon" class="w-5 h-5" />
                 <span class="hidden sm:inline">
@@ -275,7 +276,8 @@ watch(
           <!-- Main Content -->
           <div class="space-y-4">
             <!-- Add Task Form -->
-            <div v-if="showTaskForm" class="bg-white rounded-xl shadow-md border border-indigo-300 p-4">
+            <div v-if="showTaskForm"
+              class="bg-white dark:bg-gray-900 rounded-xl shadow-md border border-indigo-300 p-4">
               <TaskInput @add:task="addTask" />
             </div>
             <!-- Task List -->

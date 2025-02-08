@@ -33,6 +33,7 @@ async function loadLinkedAccounts() {
   try {
     loading.value = true;
     linkedAccounts.value = await authStore.getLinkedIdentities();
+    toast.success('Accounts loaded successfully');
   } catch (error) {
     toast.error("Failed to load linked accounts");
     console.error("Error loading accounts:", error);
@@ -74,57 +75,38 @@ async function unlinkProvider(identity: UserIdentity) {
 <template>
   <div class="max-w-md mx-auto mt-8">
     <!-- <h2 class="text-2xl font-bold mb-4">Linked Accounts</h2> -->
-    <div v-if="loading" class="text-center">Loading...</div>
+    <div v-if="loading" class="text-center text-gray-500 dark:text-gray-300 ">Loading...</div>
     <div v-else>
       <!-- Show existing linked accounts -->
-      <div
-        v-for="identity in linkedAccounts"
-        :key="identity.id"
-        class="flex flex-wrap justify-between items-center p-4 mb-2 border rounded"
-      >
+      <div v-for="identity in linkedAccounts" :key="identity.id"
+        class="flex flex-wrap justify-between items-center p-4 mb-2 border rounded">
         <div>
-          <span class="font-medium">{{ identity.provider }}</span>
-          <span class="text-sm text-gray-500 ml-2">{{
+          <span class="font-medium text-gray-500 dark:text-gray-300 text-wrap uppercase">{{ identity.provider }}</span>
+          <span class="text-sm text-gray-500 dark:text-gray-200 ml-2">{{
             getIdentityEmail(identity)
-          }}</span>
+            }}</span>
         </div>
 
-        <button
-          @click="unlinkProvider(identity)"
-          class="text-red-600 hover:text-red-800 "
-          :disabled="linkedAccounts.length < 2"
-        >
+        <button @click="unlinkProvider(identity)" class="text-red-600 hover:text-red-800" title="to unlink an account"
+          :disabled="linkedAccounts.length < 2">
           Unlink
         </button>
       </div>
 
       <!-- Add new provider buttons -->
       <div class="mt-4 space-y-2">
-        <button
-          @click="linkNewProvider('github')"
-          class="w-full flex items-center justify-center px-4 py-2 border rounded"
-        >
-          <img
-            src="https://github.com/favicon.ico"
-            alt="GitHub"
-            class="w-5 h-5 mr-2"
-          />
+        <button @click="linkNewProvider('github')" title="Link Github"
+          class="w-full flex items-center justify-center px-4 py-2 border rounded hover:bg-gray-100 dark:hover:bg-gray-950 text-gray-500 dark:text-gray-300">
+          <img src="https://github.com/favicon.ico" alt="GitHub"
+            class="w-5 h-5 mr-2 bg-gray-500 dark:bg-gray-300 border rounded-xl" />
           Link GitHub Account
         </button>
 
-        <button
-          @click="linkNewProvider('google')" :disabled="true"
-          class="w-full flex items-center justify-center px-4 py-2 border rounded"
-        >
-          <img
-            src="https://www.google.com/favicon.ico"
-            alt="Google"
-            class="w-5 h-5 mr-2"
-          />
+        <button @click="linkNewProvider('google')" :disabled="true" title="Currently Unavailable"
+          class="w-full flex items-center justify-center px-4 py-2 border rounded hover:bg-gray-100 dark:hover:bg-gray-950 text-gray-500 dark:text-gray-300">
+          <img src="https://www.google.com/favicon.ico" alt="Google" class="w-5 h-5 mr-2" />
           Link Google Account
         </button>
-
-       
       </div>
     </div>
   </div>

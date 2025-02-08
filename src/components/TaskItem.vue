@@ -188,7 +188,8 @@ const displayCategory = computed(() => {
 </script>
 
 <template>
-  <div class="task-card group p-4 border rounded-lg shadow-sm bg-white">
+  <div class="group rounded-xl shadow-sm  dark:bg-gray-950 bg-white"
+    :class="{ 'task-card': !task.completed && !task.deletedAt }">
 
     <TaskDetailOverlay v-if="showDetails" :show="showDetails" :task="task" @close="showDetails = false"
       @update:task="(updatedTask) => emit('update:task', updatedTask)" @delete:task="(id) => emit('delete:task', id)"
@@ -196,24 +197,26 @@ const displayCategory = computed(() => {
       @edit="startEditing" />
 
     <div class="flex items-center justify-between gap-4" :class="{
-      'opacity-70': task.completed,
-      'bg-gray-50': task.deletedAt,
+      'opacity-40': task.deletedAt && task.completed,
+      'opacity-55 bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-50 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border p-5 border-green-500 dark:border-green-500': task.completed && !task.deletedAt,
+      'opacity-70 bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border p-5 border-red-400 dark:border-red-500': task.deletedAt,
     }">
       <div class="flex items-center flex-1 min-w-0">
         <!-- the !!task.deletedAt is used to convert the value of task.deletedAt to a boolean (true or false).
         The disabled attribute is set to true if the task is deleted (i.e., task.deletedAt is not null or undefined), and the button is disabled.
         If the task is not deleted, the button will be enabled. -->
 
-        <button v-if="!isEditing" @click="toggleComplete"
-          class="p-1.5 rounded-full hover:bg-indigo-50 transition-colors shrink-0" :disabled="!!task.deletedAt"
-          :class="{ 'opacity-50 cursor-not-allowed': !!task.deletedAt }">
+        <button v-if="!isEditing" @click="toggleComplete" title="Toggle-Status"
+          class="p-1.5 rounded-full hover:bg-indigo-50 dark:hover:bg-gray-900 transition-colors shrink-0"
+          :disabled="!!task.deletedAt" :class="{ 'opacity-50 cursor-not-allowed': !!task.deletedAt }">
           <CheckCircleIcon class="w-7 h-7 transition-colors"
             :class="task.completed ? 'text-green-500' : 'text-gray-400'" />
         </button>
 
         <div v-if="!isEditing" class="ml-2 flex-1 min-w-0">
           <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <span class="text-gray-700 text-lg break-words" :class="{ 'line-through text-gray-400': task.completed }">
+            <span class=" text-gray-600 dark:text-gray-200 text-lg break-words"
+              :class="{ 'line-through text-gray-400': task.completed }">
               {{ task.title }}
             </span>
 
@@ -228,7 +231,7 @@ const displayCategory = computed(() => {
           </div>
 
           <div class="flex flex-col sm:flex-row flex-wrap items-start gap-3 mt-2">
-            <div class="text-sm text-gray-500">
+            <div class="text-sm text-gray-500 dark:text-gray-300">
               Created {{ formatDate(new Date(task.createdAt)) }}
             </div>
 
@@ -238,7 +241,7 @@ const displayCategory = computed(() => {
               {{ getDueStatus.text }}
             </span>
 
-            <div v-if="shouldShowDueDate" class="flex items-center gap-2 text-sm text-gray-500">
+            <div v-if="shouldShowDueDate" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
               <CalendarIcon class="w-4 h-4 shrink-0" />
               <!-- add a non-null assertion operator (!) to tell TypeScript that dueDate is guaranteed to exist when shouldShowDueDate is true. Non-null Assertion (!): By adding task.dueDate!, you assert that dueDate is not undefined in this context. This is safe because the v-if="shouldShowDueDate" condition ensures dueDate exists.-->
               <span>Due Date: {{ formatDate(task.dueDate!) }}</span>
@@ -263,11 +266,11 @@ const displayCategory = computed(() => {
           <div class="space-y-4 w-full">
             <!-- Title Input -->
             <div class="w-full">
-              <label for="category" class="block text-gray-700 font-medium mb-1">Edit Task<span
-                  class="text-red-500">*</span>
+              <label for="category" class="block text-gray-900 dark:text-gray-300 font-medium mb-1">Edit
+                Task<span class="text-red-500">*</span>
               </label>
               <textarea v-model="editedTitle" @keyup.enter="saveEdit" @keyup.esc="cancelEdit"
-                class="w-full p-2.5 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                class="w-full p-2.5 border border-indigo-300 dark:border-indigo-400 bg-gray-50 dark:bg-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 type="text" placeholder="Edit Task..." :class="{ 'border-red-500': errors.title }"></textarea>
               <p v-if="errors.title" class="text-red-500 text-sm">{{ errors.title }}</p>
             </div>
@@ -277,13 +280,14 @@ const displayCategory = computed(() => {
 
               <!-- Due Date Input with Error Handling -->
               <div class="w-full">
-                <label for="due-date" class="block text-gray-700 font-medium mb-1">
+                <label for="due-date" class="block text-gray-700 dark:text-gray-200 font-medium mb-1">
                   Due Date <span class="text-red-500">*</span>
                 </label>
 
                 <div class="relative">
                   <input id="due-date" v-model="editedDueDate" type="date" :min="format(new Date(), 'yyyy-MM-dd')"
-                    class="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200" :class="{
+                    class="w-full p-2.5 border-indigo-300 dark:border-indigo-400 bg-gray-50 dark:bg-gray-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    :class="{
                       'border-red-500 focus:ring-red-200': errors.dueDate,
                       'border-indigo-300': !errors.dueDate
                     }" required />
@@ -296,10 +300,10 @@ const displayCategory = computed(() => {
 
               <!-- Category -->
               <div class="w-full">
-                <label for="category" class="block text-gray-700 font-medium mb-1">Category <span
+                <label for="category" class="block text-gray-700 dark:text-gray-200 font-medium mb-1">Category <span
                     class="text-red-500">*</span></label>
                 <input v-model="editedCategory" id="category" type="text" placeholder="Category"
-                  class="w-full p-2.5 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  class="w-full p-2.5 border border-indigo-300 dark:border-indigo-400 bg-gray-50 dark:bg-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
                   :class="{ 'border-red-500': errors.category }" />
                 <p v-if="errors.category" class="text-red-500 text-sm mt-1">{{ errors.category }}</p>
               </div>
@@ -309,10 +313,10 @@ const displayCategory = computed(() => {
             <div class="space-y-3 w-full">
               <!-- Label -->
               <div class="w-full">
-                <label for="new-label" class="block text-gray-700 font-medium mb-1">Label</label>
+                <label for="new-label" class="block text-gray-700 dark:text-gray-200 font-medium mb-1">Label</label>
                 <div class="flex flex-col sm:flex-row gap-2 w-full">
                   <input id="new-label" v-model="newLabel" @keyup.enter="addLabel" type="text" placeholder="Add label"
-                    class="w-full p-2.5 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                    class="w-full p-2.5 border border-indigo-300 dark:border-indigo-400 bg-gray-50 dark:bg-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200" />
                   <button @click="addLabel"
                     class="w-full sm:w-auto px-4 py-2.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 whitespace-nowrap">
                     Add Label
@@ -324,7 +328,8 @@ const displayCategory = computed(() => {
                 <span v-for="label in editedLabels" :key="label"
                   class="inline-flex items-center px-2 py-1 rounded-full bg-indigo-50 text-indigo-600 text-sm">
                   {{ label }}
-                  <button @click="removeLabel(label)" class="ml-1.5 text-indigo-500 hover:text-indigo-700">
+                  <button @click="removeLabel(label)"
+                    class="ml-1.5 text-indigo-500 dark:text-indigo-800 hover:text-indigo-700">
                     <XMarkIcon class="w-4 h-4" />
                   </button>
                 </span>
@@ -338,7 +343,8 @@ const displayCategory = computed(() => {
                 <CheckIcon class="w-5 h-5" />
               </button>
 
-              <button @click="cancelEdit" class="p-2 hover:bg-gray-100 rounded-lg border border-gray-400 text-gray-800">
+              <button @click="cancelEdit"
+                class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg border border-gray-400 text-gray-800 dark:text-indigo-200">
                 <XMarkIcon class="w-5 h-5" />
               </button>
 
@@ -352,17 +358,19 @@ const displayCategory = computed(() => {
         <template v-if="!isEditing">
           <template v-if="task.deletedAt">
             <!-- Add to the template, in the actions div before the other buttons -->
-            <button @click="showDetails = true" class="btn-secondary p-2" title="View Details">
-              <EyeIcon class="w-6 h-6" />
+            <button @click="showDetails = true"
+              class="p-2  border rounded-lg dark:border-gray-100 border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-600 dark:hover:border-gray-300  text-gray-600 dark:text-gray-300"
+              title="View Details">
+              <EyeIcon class="w-5 h-5" />
             </button>
 
-            <button @click="restoreTask"
-              class="p-2 hover:bg-green-50 rounded-lg border border-gray-400 hover:border-green-300 text-gray-600 hover:text-green-600">
+            <button @click="restoreTask" title="restore"
+              class="p-2 hover:bg-green-50 rounded-lg border border-gray-400 dark:border-gray-100  dark:hover:bg-gray-800 hover:border-green-300  dark:hover:border-green-500 text-gray-600 dark:text-gray-300 hover:text-green-600">
               <ArrowUturnLeftIcon class="w-5 h-5" />
             </button>
 
-            <button @click="permanentlyDeleteTask"
-              class="p-2 hover:bg-red-50 rounded-lg border border-gray-400 hover:border-red-200 text-gray-600 hover:text-red-600">
+            <button @click="permanentlyDeleteTask" title="delete"
+              class="p-2 hover:bg-red-50 dark:hover:bg-gray-800 rounded-lg border border-gray-400 dark:border-gray-200 hover:border-red-200 dark:hover:border-red-500 text-gray-600 dark:text-gray-300 hover:text-red-600">
               <TrashIcon class="w-5 h-5" />
             </button>
           </template>
@@ -372,26 +380,20 @@ const displayCategory = computed(() => {
             <template v-if="!isEditing">
               <!-- Add to the template, in the actions div before the other buttons -->
               <button @click="showDetails = true"
-                class="p-2.5 hover:bg-blue-50 rounded-lg border border-gray-400 hover:border-blue-200 text-gray-700 hover:text-blue-600"
+                class="p-2.5 border rounded-lg text-gray-600 dark:text-gray-300 dark-text-gray-300 dark:border-gray-300 border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 hover:border-gray-600 dark:hover:border-gray-300"
                 title="View Details">
                 <EyeIcon class="w-4 h-4" />
               </button>
-
-              <!-- <button @click="viewTask"
-                class="p-2 hover:bg-blue-50 rounded-lg border border-gray-400 hover:border-blue-200 text-gray-600 hover:text-blue-600">
-                <EyeIcon class="w-5 h-5" />
-              </button> 
-              -->
             </template>
 
             <button @click="startEditing"
-              class="p-2 hover:bg-indigo-50 rounded-lg border border-gray-400 hover:border-indigo-200 text-gray-600 hover:text-indigo-600"
+              class="p-2 hover:bg-indigo-50 dark:hover:bg-gray-900 rounded-lg border border-gray-400 hover:border-indigo-500 text-gray-600 dark:text-gray-300 hover:text-indigo-500 dark:hover:text-indigo-300"
               title="Edit">
               <PencilIcon class="w-5 h-5" />
             </button>
 
             <button @click="deleteTask"
-              class="p-2 hover:bg-red-50 rounded-lg border border-gray-400 hover:border-red-200 text-gray-600 hover:text-red-600"
+              class="p-2 hover:bg-red-50 dark:hover:bg-gray-900 rounded-lg border border-gray-400 hover:border-red-200 dark:hover:border-red-800 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400"
               title="Soft Delete">
               <TrashIcon class="w-5 h-5" />
             </button>
