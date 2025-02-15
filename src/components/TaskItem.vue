@@ -365,12 +365,12 @@ const displayCategory = computed(() => {
             </button>
 
             <button @click="restoreTask" title="restore"
-              class="p-2 hover:bg-green-50 rounded-lg border border-gray-400 dark:border-gray-100  dark:hover:bg-gray-800 hover:border-green-300  dark:hover:border-green-500 text-gray-600 dark:text-gray-300 hover:text-green-600">
+              class="p-2 hover:bg-green-50 rounded-lg border border-gray-400 dark:border-gray-100  dark:hover:bg-gray-800 hover:border-green-300  dark:hover:border-green-500 text-green-600 dark:text-green-300 hover:text-green-600 dark:hover:text-green-500">
               <ArrowUturnLeftIcon class="w-5 h-5" />
             </button>
 
             <button @click="permanentlyDeleteTask" title="delete"
-              class="p-2 hover:bg-red-50 dark:hover:bg-gray-800 rounded-lg border border-gray-400 dark:border-gray-200 hover:border-red-200 dark:hover:border-red-500 text-gray-600 dark:text-gray-300 hover:text-red-600">
+              class="p-2 hover:bg-red-50 dark:hover:bg-gray-800 rounded-lg border border-gray-400 dark:border-gray-200 hover:border-red-200 dark:hover:border-red-500 text-red-600 dark:text-red-400 hover:text-red-600 dark:hover:text-red-500">
               <TrashIcon class="w-5 h-5" />
             </button>
           </template>

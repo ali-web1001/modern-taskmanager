@@ -21,6 +21,7 @@ const selectedLabels = ref<string[]>([]);
 const showLabels = ref(false);
 const showDatePicker = ref(false);
 const error = ref("");
+const categorySelect = ref<HTMLSelectElement | null>(null);
 
 // Compute minimum selectable date (today)
 const minDate = computed(() => startOfToday());
@@ -28,6 +29,25 @@ const dueDate = ref<Date>();
 
 const categoryError = ref("");
 const dueDateError = ref("");
+
+const openDropdown = () => {
+  // In most browsers, we can't programmatically open a select dropdown directly
+  // But we can focus it and then simulate pressing the space key to open it
+  if (categorySelect.value) {
+    categorySelect.value.focus();
+
+    // Create and dispatch a keyboard event (Space key) to open the dropdown
+    const event = new KeyboardEvent('keydown', {
+      key: 'ArrowDown',
+      code: 'ArrowDown',
+      keyCode: 40,
+      which: 40,
+      bubbles: true
+    });
+
+    categorySelect.value.dispatchEvent(event);
+  }
+};
 
 // Combined watch for all form fields
 watch(
@@ -156,6 +176,7 @@ const handleDateSelect = (date: Date | null) => {
 //     type: "disabled",
 //   },
 // ]);
+
 </script>
 
 <template>
@@ -182,7 +203,7 @@ const handleDateSelect = (date: Date | null) => {
             class="text-red-500"> *</span></label>
 
         <div class="relative">
-          <select v-model="selectedCategory"
+          <select v-model="selectedCategory" ref="categorySelect"
             class="input-primary border border-gray-400 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-50 w-full appearance-none focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all duration-200 outline-none">
 
             <option value="Select Category" disabled selected>
@@ -204,7 +225,7 @@ const handleDateSelect = (date: Date | null) => {
 
           <!-- Clear Button -->
           <button v-if="selectedCategory" type="button" @click="selectedCategory = ''"
-            class="absolute inset-y-0 right-8 flex items-center justify-center text-gray-400 dark:text-gray-50 hover:text-indigo-600 transition-all duration-200 rounded-full">
+            class="absolute inset-y-0 right-8 flex items-center justify-center text-gray-400 dark:text-gray-50 hover:text-indigo-600 dark:hover:text-indigo-500 transition-all duration-200 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -212,8 +233,9 @@ const handleDateSelect = (date: Date | null) => {
             </svg>
           </button>
 
-          <div
-            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-50">
+          <!-- Arrow icon with click handler -->
+          <div @click="openDropdown"
+            class="cursor-pointer absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-50  hover:text-indigo-600 dark:hover:text-indigo-500">
             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
               <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
             </svg>

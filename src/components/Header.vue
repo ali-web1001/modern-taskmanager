@@ -5,9 +5,12 @@ import BaseTooltip from "../components/BaseTooltip.vue";
 import UserMenu from "../components/UserMenu.vue";
 import { useThemeStore } from "../stores/theme";
 import { MoonIcon, SunIcon } from "@heroicons/vue/24/outline";
+import { onMounted, ref } from "vue";
+import { supabase } from '../lib/supabase';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const isAdmin = ref(false);
 
 const themeStore = useThemeStore()
 
@@ -24,6 +27,19 @@ const navigateToLogin = () => {
 const navigateToRegister = () => {
     router.push("/register");
 };
+
+onMounted(async () => {
+    if (authStore.user) {
+        const { data } = await supabase.rpc('is_admin', {
+            user_id: authStore.user.id
+        });
+        isAdmin.value = !!data;
+    }
+});
+
+const navigateToAdmin = () => {
+    router.push("/admin");
+};
 </script>
 
 <template>
@@ -31,6 +47,7 @@ const navigateToRegister = () => {
         class="fixed top-0 left-0 right-0 z-40 px-2 sm:px-6 py-2 sm:py-2 bg-indigo-700/20 dark:bg-indigo-950/90 backdrop-blur-sm border-b border-indigo-400 dark:border-indigo-600">
         <div class="max-w-4xl mx-auto flex flex-wrap gap-2 sm:gap-4 items-center justify-between">
             <div class="flex items-center gap-2 sm:gap-6">
+
                 <div class="flex items-center gap-2">
                     <!-- Smaller logo on mobile -->
                     <img class="w-8 h-8 sm:w-10 sm:h-10" src="../assets/check.png" alt="logo">
@@ -52,6 +69,12 @@ const navigateToRegister = () => {
 
             <div class="flex items-center gap-1 sm:gap-4">
                 <template v-if="authStore.isAuthenticated">
+                    <!-- Admin Dashboard Link -->
+                    <button v-if="isAdmin" @click="navigateToAdmin"
+                        class="btn-secondary text-sm sm:text-base px-3 py-1 sm:px-4 sm:py-2">
+                        Admin
+                    </button>
+
                     <BaseTooltip text="My Profile">
                         <UserMenu />
                     </BaseTooltip>
@@ -59,10 +82,10 @@ const navigateToRegister = () => {
 
                 <template v-else>
                     <button @click="navigateToLogin"
-                        class="btn-primary hover:text-indigo-900 text-sm sm:text-base px-3 py-1 sm:px-4 sm:py-2">Sign
+                        class="btn-primary bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-700 text-sm sm:text-base px-3 py-1 sm:px-4 sm:py-2">Sign
                         In</button>
                     <button @click="navigateToRegister"
-                        class="btn-secondary hover:text-indigo-900 text-sm sm:text-base px-3 py-1 sm:px-4 sm:py-2">Sign
+                        class="btn-secondary hover:bg-gray-200 dark:hover:bg-gray-200 hover:text-gray-900 dark:hover:text-gray-800 text-sm sm:text-base px-3 py-1 sm:px-4 sm:py-2">Sign
                         Up</button>
                 </template>
             </div>

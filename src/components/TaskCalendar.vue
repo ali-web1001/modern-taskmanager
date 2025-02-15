@@ -69,7 +69,7 @@ const selectTask = (taskId: string, event: Event) => {
       <template v-for="date in calendarDays" :key="date.toISOString()">
 
         <div class="p-2 border border-gray-300 rounded-lg" :class="{
-          'bg-indigo-50 border-indigo-200 dark:bg-indigo-600': isToday(date),
+          'bg-indigo-50 border-indigo-200 dark:bg-indigo-500': isToday(date),
           'bg-gray-50 border-gray-200  dark:bg-gray-900': !isToday(date) && isSameMonth(date, currentDate),
           'bg-gray-100 border-gray-300  dark:bg-gray-900': !isSameMonth(date, currentDate)
         }">
@@ -83,7 +83,7 @@ const selectTask = (taskId: string, event: Event) => {
 
           <div class="space-y-1">
             <button v-for="task in tasksForDate(date)" :key="task.id" @click="(e) => selectTask(task.id, e)"
-              class="w-full text-left text-xs p-1 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-indigo-50 border border-gray-200 truncate hover:bg-indigo-50 dark:hover:bg-indigo-600 hover:border-indigo-200 dark:hover:border-indigo-400 transition-colors"
+              class="w-full text-left text-xs p-1 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-indigo-50 border border-gray-200 truncate hover:bg-indigo-50 dark:hover:bg-indigo-500 hover:border-indigo-200 dark:hover:border-indigo-400 transition-colors"
               :class="{ 'line-through opacity-70': task.completed }">
               {{ task.title }}
             </button>
