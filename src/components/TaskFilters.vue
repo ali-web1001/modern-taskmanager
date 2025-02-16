@@ -3,9 +3,13 @@ import { TASK_CATEGORIES, TASK_LABELS, type TaskFilter } from "../types/task";
 import { onMounted, onUnmounted, ref } from "vue";
 import { FunnelIcon } from "@heroicons/vue/24/outline";
 import { useToast } from "vue-toastification";
+import { useCategoryStore } from "../stores/categories";
+import { useLabelStore } from "../stores/labels";
 
 const showFilters = ref(false);
 const toast = useToast();
+const categoryStore = useCategoryStore();
+const labelStore = useLabelStore();
 
 const props = defineProps<{
   modelValue: TaskFilter;
@@ -52,6 +56,8 @@ const closeFilters = (event: MouseEvent) => {
 
 onMounted(() => {
   window.addEventListener("click", closeFilters);
+  categoryStore.fetchCustomCategories();
+  labelStore.fetchCustomLabels();
 });
 
 onUnmounted(() => {
@@ -93,19 +99,27 @@ onUnmounted(() => {
       @click.stop>
       <div class="p-4 space-y-4">
         <div class="flex items-center justify-between">
+
           <h3 class="text-sm font-medium text-gray-900 dark:text-gray-300">Filters</h3>
+
           <button @click="resetFilters"
             class=" text-gray-900 dark:text-gray-300 hover:text-indigo-400 dark:hover:text-indigo-200 transition-colors"
             title="Reset Filters">
+
             <!-- <XCircleIcon class="w-5 h-5" /> -->
+
             Reset All
           </button>
+
         </div>
 
         <!-- Date Range Filter -->
         <div class="space-y-2">
+
           <label class="block text-sm font-medium  text-gray-900 dark:text-gray-300">Due Date Range</label>
+
           <div class="space-y-1">
+
             <div>
               <label class="text-xs text-gray-900 dark:text-gray-300">From</label>
               <input type="date" :value="modelValue.startDate" @input="
@@ -116,6 +130,7 @@ onUnmounted(() => {
                 "
                 class="input-primary w-full text-sm border border-gray-400 text-gray-900 dark:text-gray-300 bg-gray-50 dark:bg-gray-800" />
             </div>
+
             <div>
               <label class="text-xs  text-gray-900 dark:text-gray-300">To</label>
               <!-- //the date inputs were using v-model directly on the modelValue.startDate and modelValue.endDate. But in Vue, mutating props directly isn't recommended. Instead, the solution changed to using :value to bind the input's value and @input to handle changes. This way, when the user picks a date, the @input event triggers an updateFilter call, which emits the new value to the parent component. -->
@@ -159,16 +174,26 @@ onUnmounted(() => {
               "
               class="input-primary border border-gray-400 text-gray-900 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 w-full appearance-none focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200 text-sm pr-8 cursor-pointer">
               <option value="">All Categories</option>
-              <option v-for="category in TASK_CATEGORIES" :key="category" :value="category">
-                {{ category }}
-              </option>
-            </select>
+              <!-- Default Categories -->
+              <optgroup label="Default Categories">
+                <option v-for="category in TASK_CATEGORIES" :key="category" :value="category">
+                  {{ category }}
+                </option>
+              </optgroup>
 
+              <!-- Custom Categories -->
+              <optgroup v-if="categoryStore.customCategories.length > 0" label="Custom Categories">
+                <option v-for="category in categoryStore.customCategories" :key="category.id" :value="category.name">
+                  {{ category.name }}
+                </option>
+              </optgroup>
+            </select>
+            <!-- 
             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                 <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
               </svg>
-            </div>
+            </div> -->
 
             <!-- Clear Button -->
             <button v-if="modelValue.selectedCategory" type="button" @click="updateFilter({ selectedCategory: '' })"
@@ -186,18 +211,29 @@ onUnmounted(() => {
                 <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
               </svg>
             </div>
+
           </div>
         </div>
 
         <!-- Labels Filter -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Labels</label>
+
           <div class="flex flex-wrap gap-1.5">
+            <!-- Default Labels -->
             <button v-for="label in TASK_LABELS" :key="label.name" @click="toggleLabel(label.name)"
+              class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :class="modelValue.selectedLabels.includes(label.name)
+                ? 'border-r-2 border-indigo-300 bg-indigo-100 text-indigo-700'
+                : 'border-r-2 border-gray-300 bg-gray-100 text-gray-700'">
+              <component :is="label.icon" class="w-4 h-4" />
+              {{ label.name }}
+            </button>
+
+            <!-- Custom Labels -->
+            <button v-for="label in labelStore.customLabels" :key="label.id" @click="toggleLabel(label.name)"
               class="px-3 py-1 rounded-full text-sm" :class="modelValue.selectedLabels.includes(label.name)
-                ? 'border-r-2 border-indigo-300 dark:border-indigo-600 bg-indigo-100 text-indigo-700 dark:text-gray-900 dark:bg-gray-200'
-                : 'border-r-2 border-gray-400 bg-gray-100 text-gray-600 dark:text-gray-300 dark:bg-gray-800'
-                ">
+                ? 'border-r-2 border-indigo-300 bg-indigo-100 text-indigo-700'
+                : 'border-r-2 border-gray-300 bg-gray-100 text-gray-700'">
               {{ label.name }}
             </button>
           </div>

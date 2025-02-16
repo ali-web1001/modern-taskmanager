@@ -1,8 +1,9 @@
 <template>
+  
   <div class="min-h-screen bg-indigo-100 dark:bg-gray-950 py-12 px-4 sm:px-6">
+
     <div class="max-w-4xl mx-auto pt-16 sm:pt-20 pb-9 px-2 sm:px-6">
       <Header />
-
       <!-- Back Button -->
       <div class="mb-5">
         <button @click="router.push('/')" class="flex items-center text-indigo-600 hover:text-indigo-700">
@@ -16,12 +17,13 @@
 
         <!-- Add Category Form -->
         <form @submit.prevent="addCategory" class="mb-8">
-          <div class="flex gap-4">
+          <div class="flex flex-col sm:flex-row gap-4">
             <input v-model="newCategory" type="text" placeholder="Enter new category"
-              class="flex-1 input-primary border border-gray-400" required />
-            <button type="submit" :disabled="loading" class="btn-primary dark:hover:bg-indigo-700 whitespace-nowrap">
+              class="flex-1 w-full input-primary border border-gray-400" required />
+            <button type="submit" :disabled="loading"
+              class="btn-primary w-full sm:w-auto dark:hover:bg-indigo-700 whitespace-nowrap">
               <PlusIcon class="w-5 h-5 mr-2" />
-              Add Category
+              Add
             </button>
           </div>
         </form>

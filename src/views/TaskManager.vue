@@ -7,13 +7,14 @@ import TaskItem from "../components/TaskItem.vue";
 import TaskInput from "../components/TaskInput.vue";
 import TaskFilters from "../components/TaskFilters.vue";
 import TaskCalendar from "../components/TaskCalendar.vue";
-import { CalendarIcon, FolderIcon, MinusCircleIcon, PlusCircleIcon, TagIcon } from "@heroicons/vue/24/outline";
+import { CalendarIcon, MinusCircleIcon, PlusCircleIcon, TagIcon } from "@heroicons/vue/24/outline";
 import { useToast } from "vue-toastification";
 import BaseTooltip from "../components/BaseTooltip.vue";
 import LoadingComponent from "../components/LoadingComponent.vue";
 import Header from "../components/Header.vue";
 import Welcome from "./Welcome.vue";
 import { useRouter } from "vue-router";
+import { FolderOpenIcon } from "@heroicons/vue/24/outline";
 
 const taskStore = useTaskStore();
 const authStore = useAuthStore();
@@ -246,7 +247,7 @@ watch(
             <BaseTooltip text="Manage Categories">
               <button @click="navigateToCategories" class="p-2 bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-200 rounded-lg hover:bg-gray-100 
                 border border-gray-400 flex items-center gap-2">
-                <FolderIcon class="w-5 h-5" />
+                <FolderOpenIcon class="w-5 h-5" />
                 <span class="hidden sm:inline">Categories</span>
               </button>
             </BaseTooltip>

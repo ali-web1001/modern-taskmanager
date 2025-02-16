@@ -16,10 +16,11 @@
 
         <!-- Add Label Form -->
         <form @submit.prevent="addLabel" class="mb-8">
-          <div class="flex gap-4">
+          <div class="flex flex-col sm:flex-row gap-4">
             <input v-model="newLabel" type="text" placeholder="Enter new label"
-              class="flex-1 input-primary border border-gray-300" required />
-            <button type="submit" :disabled="loading" class="btn-primary dark:hover:bg-indigo-700 whitespace-nowrap">
+              class="flex-1 w-full input-primary border border-gray-300" required />
+            <button type="submit" :disabled="loading"
+              class="btn-primary w-full sm:w-auto dark:hover:bg-indigo-700 whitespace-nowrap">
               <PlusIcon class="w-5 h-5 mr-2" />
               Add Label
             </button>

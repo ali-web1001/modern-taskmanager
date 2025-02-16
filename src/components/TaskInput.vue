@@ -5,6 +5,12 @@ import { TASK_CATEGORIES, TASK_LABELS } from "../types/task";
 import { isBefore, startOfDay, startOfToday } from "date-fns";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
+import { useCategoryStore } from "../stores/categories";
+import { useLabelStore } from "../stores/labels";
+import { onMounted } from "vue";
+
+const categoryStore = useCategoryStore();
+const labelStore = useLabelStore();
 
 const emit = defineEmits<{
   "add:task": [
@@ -48,6 +54,12 @@ const openDropdown = () => {
     categorySelect.value.dispatchEvent(event);
   }
 };
+
+// Fetch custom categories and labels on mount
+onMounted(() => {
+  categoryStore.fetchCustomCategories();
+  labelStore.fetchCustomLabels();
+});
 
 // Combined watch for all form fields
 watch(
@@ -210,12 +222,19 @@ const handleDateSelect = (date: Date | null) => {
               Select Category
             </option>
 
-            <option v-for="category in TASK_CATEGORIES" :key="category" :value="category" :class="{
-              'border border-red-500 ring-1 ring-red-200 focus:ring-red-500': categoryError,
-              'border border-gray-300 focus:border-indigo-500 focus:ring-indigo-500': !categoryError
-            }">
-              {{ category }}
-            </option>
+            <!-- Default Categories -->
+            <optgroup label="Default Categories">
+              <option v-for="category in TASK_CATEGORIES" :key="category" :value="category">
+                {{ category }}
+              </option>
+            </optgroup>
+
+            <!-- Custom Categories -->
+            <optgroup v-if="categoryStore.customCategories.length > 0" label="Custom Categories">
+              <option v-for="category in categoryStore.customCategories" :key="category.id" :value="category.name">
+                {{ category.name }}
+              </option>
+            </optgroup>
 
           </select>
 
@@ -235,7 +254,7 @@ const handleDateSelect = (date: Date | null) => {
 
           <!-- Arrow icon with click handler -->
           <div @click="openDropdown"
-            class="cursor-pointer absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-50  hover:text-indigo-600 dark:hover:text-indigo-500">
+            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-50  hover:text-indigo-600 dark:hover:text-indigo-500">
             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
               <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
             </svg>
@@ -266,13 +285,22 @@ const handleDateSelect = (date: Date | null) => {
         {{ showLabels ? "Hide Labels" : "Show Labels" }}
       </button>
 
-      <div v-if="showLabels" class="mt-2 flex flex-wrap gap-2">
+      <div v-if="showLabels" class="mt-3 flex flex-wrap gap-2">
         <button v-for="label in TASK_LABELS" :key="label.name" type="button" @click="toggleLabel(label.name)"
           class="px-3 py-1 flex items-center gap-2 rounded-full text-sm" :class="selectedLabels.includes(label.name)
             ? 'bg-indigo-100 text-indigo-700 border border-indigo-300'
             : 'bg-gray-100 text-gray-700 border border-gray-400'
             ">
           <component :is="label.icon" class="w-4 h-4" />
+          {{ label.name }}
+        </button>
+
+        <!-- Custom Labels -->
+        <button v-for="label in labelStore.customLabels" :key="label.id" @click="toggleLabel(label.name)"
+          class="px-3 py-1 rounded-full text-sm mb-2 mt-1" :class="selectedLabels.includes(label.name)
+            ? 'bg-indigo-100 text-indigo-700 border border-indigo-300'
+            : 'bg-gray-100 text-gray-700 border border-gray-400'
+            ">
           {{ label.name }}
         </button>
       </div>
