@@ -296,8 +296,8 @@ const handleDateSelect = (date: Date | null) => {
         </button>
 
         <!-- Custom Labels -->
-        <button v-for="label in labelStore.customLabels" :key="label.id" @click="toggleLabel(label.name)"
-          class="px-3 py-1 rounded-full text-sm mb-2 mt-1" :class="selectedLabels.includes(label.name)
+        <button v-for="label in labelStore.customLabels" type="button" :key="label.name"
+          @click="toggleLabel(label.name)" class="px-3 py-1 rounded-full text-sm mb-2 mt-1" :class="selectedLabels.includes(label.name)
             ? 'bg-indigo-100 text-indigo-700 border border-indigo-300'
             : 'bg-gray-100 text-gray-700 border border-gray-400'
             ">
