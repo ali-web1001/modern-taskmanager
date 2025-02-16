@@ -32,8 +32,8 @@ const handleRegister = async () => {
   <div class="min-h-screen bg-indigo-100 dark:bg-gray-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <Header v-if="!authStore.isAuthenticated" />
 
-    <div>
-      <h1 class="text-center text-2xl font-serif mb-5 text-gray-600 dark:text-gray-300">
+    <div class="px-4 py-2 sm:px-6 md:px-8 lg:px-10">
+      <h1 class="text-center text-2xl font-serif mb-2 mt-5 sm:mt-8 md:mt-12 lg:mt-16 text-gray-600 dark:text-gray-300">
         Manage Daily Tasks With Ease
       </h1>
     </div>

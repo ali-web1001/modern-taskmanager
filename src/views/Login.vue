@@ -51,9 +51,10 @@ const handleSocialLogin = async (provider: Provider) => {
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <Header v-if="!authStore.isAuthenticated" />
 
-      <div>
-        <h1 class="text-center text-2xl font-serif mb-5 text-gray-600 dark:text-gray-300">
-         Welcome Back!
+      <div class="px-4 py-2 sm:px-6 md:px-8 lg:px-10">
+        <h1
+          class="text-center text-2xl font-serif mb-2 mt-5 sm:mt-8 md:mt-12 lg:mt-16 text-gray-600 dark:text-gray-300">
+          Welcome Back!
         </h1>
       </div>
 
